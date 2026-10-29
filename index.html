@@ -1,48 +1,1045 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>যোগাযোগের তথ্য</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .center-box {
-            text-align: center;
-            padding: 20px;
-        }
-        h3 {
-            margin: 0;
-            font-size: 18px;
-            line-height: 1.8;
-            color: #333;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>পিডিএফ টুলস</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--tx:#1d2433;--mu:#667085;--pr:#e5322d;--bd:#e3e7ef}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2030;--tx:#e8ebf4;--mu:#9aa3b8;--bd:#2c3347}}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans Bengali","Hind Siliguri",system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+header{text-align:center;padding:28px 16px 8px}
+header h1{margin:0;font-size:28px}header p{color:var(--mu);margin:6px 0 0}
+main{max-width:980px;margin:auto;padding:16px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.t{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:.15s}
+.t:hover,.t.on{border-color:var(--pr);transform:translateY(-2px)}
+.t i{font-style:normal;font-size:30px;display:block}.t b{display:block;margin-top:6px}.t small{color:var(--mu)}
+#panel{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px;margin-top:16px}
+#panel h2{margin:0 0 4px}#panel p{color:var(--mu);margin:0 0 14px}
+#drop{border:2px dashed var(--bd);border-radius:12px;padding:26px;text-align:center;cursor:pointer;color:var(--mu)}
+#drop.h{border-color:var(--pr)}
+#list{margin:12px 0;padding:0;list-style:none}
+#list li{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;font-size:14px}
+#list button{border:0;background:none;color:var(--pr);cursor:pointer;font-size:16px}
+label{display:block;margin:10px 0 4px;font-size:14px;color:var(--mu)}
+input[type=text],input[type=number],select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+#go{margin-top:16px;width:100%;padding:13px;border:0;border-radius:10px;background:var(--pr);color:#fff;font:inherit;font-size:16px;cursor:pointer}
+#go:disabled{opacity:.5}
+#st{margin-top:12px;font-size:14px;min-height:20px}
+#ed{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
+#ed[hidden]{display:none}
+#tb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;background:var(--card);border-bottom:1px solid var(--bd)}
+#tools{display:flex;flex-wrap:wrap;gap:6px}
+#tb button{padding:7px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:14px;cursor:pointer}
+#tb button.on{background:var(--pr);color:#fff;border-color:var(--pr)}
+#tb #esv{background:#16a34a;color:#fff;border-color:#16a34a}
+#tb label{font-size:12px;color:var(--mu);margin:0;display:flex;align-items:center;gap:4px}
+#tb input{width:56px;padding:4px}
+#tb input[type=color]{width:34px;height:30px;padding:0;border:0;background:none}
+#eh{font-size:13px;color:var(--mu);padding:5px 10px;background:var(--card)}
+#pg{flex:1;overflow:auto;padding:12px;background:#8a8f9c33}
+.pw{position:relative;margin:0 auto 14px;box-shadow:0 2px 10px #0005;background:#fff}
+.pw canvas{display:block;position:absolute;left:0;top:0}
+#pg.act .ov{touch-action:none;cursor:crosshair}
+.tx{position:absolute;min-width:30px}
+.tx .ed{border:1px dashed #888;padding:2px;line-height:1.3;white-space:pre-wrap;outline:none;min-width:60px;resize:horizontal;overflow:hidden;font-family:"Noto Sans Bengali","Hind Siliguri",Arial,sans-serif}
+.tx .hd,.tx .dl,.tx .rt{position:absolute;top:-21px;font-size:13px;background:#fff;color:#333;border:1px solid #bbb;border-radius:4px;padding:0 5px;line-height:18px;cursor:pointer}
+.tx .hd{left:0;cursor:move;touch-action:none}.tx .dl{left:28px}.tx .rt{left:56px;cursor:grab;touch-action:none}
+.mk{position:absolute;border:1px dashed #2563eb;pointer-events:none;transform-origin:center}
+#pg.mv .mk{pointer-events:auto;cursor:move;touch-action:none;border-style:solid}
+.mk .mvh,.mk b,.mk .rh{position:absolute;top:-21px;font-size:13px;background:#fff;color:#333;border:1px solid #bbb;border-radius:4px;padding:0 5px;line-height:18px;font-weight:400;cursor:pointer;pointer-events:auto;touch-action:none}
+.mk .mvh{left:0;cursor:move}.mk b{left:28px}.mk .rh{left:56px;cursor:grab}
+.mk .sh{position:absolute;right:-11px;bottom:-11px;width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;text-align:center;line-height:22px;font-size:13px;pointer-events:auto;touch-action:none;cursor:nwse-resize}
+.mk i{position:absolute;left:-1px;bottom:-17px;font-size:11px;font-style:normal;background:#2563eb;color:#fff;padding:0 5px;border-radius:3px;white-space:nowrap}
+.tx .ed.sel{border:1px solid #2563eb;box-shadow:0 0 0 3px #2563eb55}
+#pg.nomk .mk,#pg.nomk .tx .hd,#pg.nomk .tx .dl,#pg.nomk .tx .rt{display:none}
+#pg.nomk .tx .ed{border-color:transparent;box-shadow:none;resize:none}
+footer{text-align:center;color:var(--mu);font-size:13px;padding:20px}
+#ocr *{box-sizing:border-box}
+#ocr{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Bengali","Nirmala UI","Kalpurush",system-ui,sans-serif;line-height:1.6}
+#ocr .wrap{max-width:980px;margin:0 auto;padding:20px}
+#ocr h1{margin:6px 0 2px;font-size:26px}
+#ocr .sub{color:var(--mut);margin:0 0 16px}
+#ocr .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
+#ocr #oc-drop{border:2px dashed var(--bd);border-radius:14px;padding:34px 16px;text-align:center;cursor:pointer;transition:.15s}
+#ocr #oc-drop.over{border-color:var(--pri);background:rgba(37,99,235,.07)}
+#ocr #oc-drop b{font-size:18px}
+#ocr .row{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-top:12px}
+#ocr label{font-size:13px;color:var(--mut);display:block;margin-bottom:3px}
+#ocr select,#ocr input[type=number],#ocr input[type=text]{padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+#ocr button{padding:9px 16px;border:0;border-radius:9px;background:var(--pri);color:#fff;font:inherit;cursor:pointer}
+#ocr button.sec{background:transparent;color:var(--ink);border:1px solid var(--bd)}
+#ocr button.stop{background:var(--bad)}
+#ocr button:disabled{opacity:.5;cursor:default}
+#ocr .chk{display:flex;align-items:center;gap:6px;font-size:14px;padding-bottom:8px}
+#ocr .files{margin-top:10px;font-size:14px;color:var(--mut);word-break:break-all}
+#ocr .bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden;margin:8px 0}
+#ocr .bar i{display:block;height:100%;width:0;background:var(--pri);transition:width .2s}
+#ocr .head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+#ocr .name{font-weight:600;word-break:break-all}
+#ocr .st{font-size:13px;color:var(--mut)}
+#ocr .st.ok{color:var(--ok)} .st.err{color:var(--bad)}
+#ocr textarea{width:100%;min-height:220px;margin-top:8px;padding:12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--ink);font:16px/1.7 "Noto Sans Bengali","Nirmala UI",system-ui,sans-serif;resize:vertical}
+#ocr .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+#ocr .hide{display:none}
+#ocr details{font-size:14px;color:var(--mut)}
+#ocr details summary{cursor:pointer;color:var(--ink)}
+#ocr details li{margin:3px 0}
+#ocr #oc-cropcv{max-width:100%;touch-action:none;cursor:crosshair;border:1px solid var(--bd);border-radius:8px;display:block}
+#ocr textarea.fix{min-height:160px;border-color:var(--ok)}
+#ocr img.prev{max-width:100%;max-height:240px;border-radius:8px;border:1px solid var(--bd);margin-top:8px}
+#ocr{position:fixed;inset:0;z-index:60;overflow:auto;--ink:var(--tx);--mut:var(--mu);--pri:#2563eb;--ok:#16a34a;--bad:#dc2626}
+#ocr[hidden]{display:none}
+#ocr select,#ocr input[type=number],#ocr input[type=text]{width:auto}
+#ocr label{margin:0 0 3px;display:block}
+#ocr .chk{margin:0}
+#ocr .ocrbar{display:flex;justify-content:flex-end}
+</style>
 </head>
 <body>
+<header><h1>📄 পিডিএফ টুলস</h1><p>সব কাজ আপনার ব্রাউজারেই হয় — ফাইল কোথাও আপলোড হয় না</p></header>
+<main>
+<div id="grid"></div>
+<section id="panel" hidden>
+<h2 id="pt"></h2><p id="pd"></p>
+<div id="drop">ফাইল বেছে নিতে এখানে ক্লিক করুন বা ফাইল ড্রপ করুন</div>
+<input id="fi" type="file" hidden>
+<ul id="list"></ul>
+<div id="opts"></div>
+<button id="go">শুরু করুন</button>
+<div id="st"></div>
+</section>
+</main>
+<div id="ocr" hidden>
+<div class="wrap"><div class="ocrbar"><button id="oc-x" class="sec">✕ বন্ধ করুন</button></div>
+  <h1>পাওয়ার OCR</h1>
+  <p class="sub">ছবি বা PDF থেকে বাংলা ও ইংরেজি লেখা বের করুন। ছবি আপনার ব্রাউজারেই প্রসেস হয়, কোথাও আপলোড হয় না।</p>
 
-<div class="center-box">
-    <h3>
-        যে কোন ধরনের<br>
-        বারকোড ও কিউ আর কোড তৈরির<br>
-        ওয়েব পেজ তৈরি করতে চাইলে যোগাযোগ করতে পারেন<br>
-        <a href="mailto:porimolcroy@gmail.com">porimolcroy@gmail.com</a>
-    </h3>
+  <div class="card">
+    <div id="oc-drop"><b>ফাইল এখানে ছেড়ে দিন</b><br><span class="sub">অথবা ক্লিক করে বাছাই করুন (ছবি / PDF, একাধিক চলবে)। Ctrl+V দিয়ে স্ক্রিনশট পেস্টও করা যায়।</span></div>
+    <input id="oc-pick" type="file" accept="image/*,.pdf,application/pdf" multiple class="hide">
+    <div class="files" id="oc-flist">কোনো ফাইল বাছাই করা হয়নি</div>
+
+    <div class="row">
+      <div><label>ভাষা</label>
+        <select id="oc-lang">
+          <option value="ben">শুধু বাংলা (ভুল কম)</option>
+          <option value="ben+eng">বাংলা + ইংরেজি</option>
+          <option value="eng">শুধু ইংরেজি</option>
+        </select></div>
+      <div><label>ভাষা মডেল</label>
+        <select id="oc-quality">
+          <option value="best">সেরা মান (বড় ডাউনলোড)</option>
+          <option value="fast">দ্রুত (ছোট ডাউনলোড)</option>
+        </select></div>
+      <div><label>লেআউট</label>
+        <select id="oc-psm">
+          <option value="3">অটো (সাধারণ পাতা)</option>
+          <option value="4">একাধিক কলাম</option>
+          <option value="6">একটি টেক্সট ব্লক</option>
+          <option value="7">এক লাইন</option>
+        </select></div>
+      <div><label>ছবি পরিষ্কার করা</label>
+        <select id="oc-mode">
+          <option value="auto">অটো (দরকারে দুই পদ্ধতি)</option>
+          <option value="clean">কন্ট্রাস্ট ঠিক করা</option>
+          <option value="binary">সাদা-কালো থ্রেশহোল্ড</option>
+          <option value="none">কিছুই না (আসল ছবি)</option>
+        </select></div>
+      <div><label>PDF মান (DPI)</label><input id="oc-dpi" type="number" value="300" min="150" max="450" step="50" style="width:90px"></div>
+      <label class="chk"><input id="oc-deskew" type="checkbox" checked> বাঁকা ছবি সোজা করা</label>
+      <label class="chk"><input id="oc-nolatin" type="checkbox" checked> ইংরেজি অক্ষর বন্ধ (শুধু বাংলা লেখায়)</label>
+    </div>
+    <div class="row">
+      <button id="oc-cropBtn" class="sec" disabled>① লেখার অংশ বেছে নিন (ক্রপ)</button>
+      <button id="oc-cropClr" class="sec hide">ক্রপ সরান</button>
+      <span class="st" id="oc-cropst">ব্রাউজার ট্যাব, মেনু বা বিজ্ঞাপন বাদ দিলে ভুল অনেক কমে</span>
+    </div>
+    <div id="oc-cropbox" class="hide" style="margin-top:10px"><canvas id="oc-cropcv"></canvas></div>
+    <div class="row">
+      <button id="oc-go" disabled>OCR শুরু করুন</button>
+      <button id="oc-stop" class="stop hide">বন্ধ করুন</button>
+      <button id="oc-clr" class="sec">মুছুন</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>AI দিয়ে বানান শুধরানো (ঐচ্ছিক – Ollama লাগবে)</summary>
+      <div class="row">
+        <div><label>Ollama ঠিকানা</label><input id="oc-ollamaUrl" type="text" value="http://localhost:11434" style="width:230px"></div>
+        <div><label>মডেলের নাম</label><input id="oc-ollamaModel" type="text" list="oc-olist" placeholder="যেমন qwen2.5:7b" style="width:200px"><datalist id="oc-olist"></datalist></div>
+      </div>
+      <p>ফলাফলের নিচে "AI দিয়ে বানান শুধরান" বাটন আসবে। মূল OCR লেখা অপরিবর্তিত থাকে, শুধরানো লেখা আলাদা বক্সে আসে। ফাইল থেকে সরাসরি খোলা পেজকে Ollama-র সাথে কথা বলতে দিতে Ollama চালানোর আগে <code>OLLAMA_ORIGINS=*</code> সেট করতে হবে। AI কখনও সঠিক শব্দও বদলে ফেলতে পারে, তাই মিলিয়ে দেখে নিন।</p>
+    </details>
+  </div>
+
+  <div id="oc-results"></div>
+
+  <div class="card hide" id="oc-all">
+    <div class="acts">
+      <button id="oc-allTxt">সব টেক্সট (.txt)</button>
+      <button id="oc-allDoc">Word ফাইল (.doc)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>ভালো ফলাফলের টিপস</summary>
+      <ul>
+        <li>সবচেয়ে বড় উন্নতি আসে "ক্রপ" থেকে: শুধু লেখার অংশ বেছে নিন, স্ক্রিনশটের ট্যাব/মেনু/টাস্কবার বাদ দিন।</li>
+        <li>বাংলা লেখায় ভাষা "শুধু বাংলা" ও "ইংরেজি অক্ষর বন্ধ" রাখুন, নইলে কঠিন শব্দ ইংরেজি আবর্জনা (যেমন PIR, Gi) হয়ে যায়।</li>
+        <li>প্রথমবার ভাষা ডেটা নামাতে ইন্টারনেট ও কিছুটা সময় লাগে। এরপর ব্রাউজার সেটা জমা রাখে।</li>
+        <li>স্ক্যান বা ছবি যত পরিষ্কার ও আলো সমান, ফলাফল তত ভালো। ছায়া থাকলে "সাদা-কালো থ্রেশহোল্ড" চেষ্টা করুন।</li>
+        <li>বইয়ের একাধিক কলাম হলে লেআউট "একাধিক কলাম" দিন।</li>
+        <li>ঝাপসা PDF হলে DPI ৪০০ করুন, তবে সময় বেশি লাগবে।</li>
+        <li>ফলাফল নিচের বক্সেই এডিট করে তারপর কপি বা সেভ করতে পারবেন।</li>
+      </ul>
+    </details>
+  </div>
 </div>
+</div>
+<div id="ed" hidden>
+<div id="tb">
+<div id="tools"></div>
+<label>ফন্ট <input id="ef" list="fl" value="Noto Sans Bengali" style="width:150px" autocomplete="off"></label><datalist id="fl"></datalist>
+<button id="efl" title="কম্পিউটারে থাকা সব ফন্ট লোড করুন">💻 সিস্টেম ফন্ট</button><button id="eff" title="NikoshBAN.ttf-এর মতো ফন্ট ফাইল যুক্ত করুন">📂 ফন্ট ফাইল</button><input type="file" id="eft" accept=".ttf,.otf,.woff,.woff2" hidden>
+<button id="ebd" title="বোল্ড"><b>B</b></button><button id="eit" title="ইটালিক"><i>I</i></button><span id="eal" style="display:flex;gap:4px"><button data-a="left" title="বামে অ্যালাইন">⬅</button><button data-a="center" title="মাঝে অ্যালাইন">↔</button><button data-a="right" title="ডানে অ্যালাইন">➡</button><button data-a="justify" title="দুই পাশ সমান (জাস্টিফাই)">☰</button></span>
+<label>রং <input type="color" id="ec" value="#e5322d"></label>
+<label>লেখা <input type="number" id="es" value="18" min="8" max="120"></label>
+<label>রেখা <input type="number" id="ew" value="3" min="1" max="30"></label>
+<button id="eu">↩️ আনডু</button><button id="evw" title="চিহ্ন লুকিয়ে সেভ করার পর যেমন দেখাবে তেমন দেখুন">👁 প্রিভিউ</button><button id="esv">💾 সেভ</button><button id="ex">✕ বন্ধ</button>
+<input type="file" id="ei" accept="image/*" hidden>
+</div>
+<div id="eh"></div>
+<div id="pg"></div>
+</div>
+<footer>ইন্টারনেট সংযোগ লাগবে শুধু প্রথমবার লাইব্রেরি লোড করতে</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const {PDFDocument,degrees,rgb,StandardFonts}=PDFLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const $=s=>document.querySelector(s), v=id=>$('#'+id).value;
+const st=m=>$('#st').textContent=m;
+const buf=f=>f.arrayBuffer();
+const bn=s=>s.replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d));
+function save(data,name,type='application/pdf'){
+  const b=data instanceof Blob?data:new Blob([data],{type});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),8000);
+}
+function ranges(s,n){
+  const o=new Set();
+  bn(s).split(',').forEach(p=>{p=p.trim();if(!p)return;const m=p.split('-').map(Number);
+    const a=m[0],b=m[1]||a;for(let i=Math.max(1,a);i<=Math.min(n,b);i++)o.add(i-1)});
+  return [...o].sort((a,b)=>a-b);
+}
+async function render(file,scale,fn){
+  const pdf=await pdfjsLib.getDocument({data:await buf(file)}).promise;
+  for(let i=1;i<=pdf.numPages;i++){
+    const pg=await pdf.getPage(i),vp=pg.getViewport({scale});
+    const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+    await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    await fn(c,i,pdf.numPages);
+  }
+}
+const jpg=(c,q)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
+const base=f=>f.name.replace(/\.[^.]+$/,'');
 
+const PDF='.pdf,application/pdf', IMG='image/*';
+const pagesOpt=l=>`<label>${l}</label><input type="text" id="o1" placeholder="যেমন: 1-3, 5, 8-10">`;
+const T=[
+{id:'edit',i:'✏️',n:'পিডিএফ এডিট',d:'লেখা, আঁকা, হাইলাইট, ছবি/সই, সাদা করে মোছা',a:PDF,
+ run:async([f])=>{await openEditor(f);return 1}},
+{id:'ocr',i:'🔎',n:'OCR (ছবি/PDF থেকে লেখা)',d:'বাংলা ও ইংরেজি লেখা বের করুন, ক্রপ ও AI শুধরানোসহ',a:PDF,run:async()=>{}},
+{id:'merge',i:'🧩',n:'পিডিএফ মার্জ',d:'একাধিক পিডিএফ জুড়ে একটি করুন',a:PDF,m:1,min:2,
+ run:async F=>{const out=await PDFDocument.create();
+  for(const f of F){const d=await PDFDocument.load(await buf(f),{ignoreEncryption:true});
+   (await out.copyPages(d,d.getPageIndices())).forEach(p=>out.addPage(p));}
+  save(await out.save(),'merged.pdf');}},
+{id:'split',i:'✂️',n:'পেজ আলাদা করুন',d:'নির্দিষ্ট পেজ বের করে নতুন পিডিএফ বানান',a:PDF,o:pagesOpt('কোন কোন পেজ রাখবেন'),
+ run:async([f])=>{const d=await PDFDocument.load(await buf(f),{ignoreEncryption:true});
+  const idx=ranges(v('o1'),d.getPageCount());if(!idx.length)throw'সঠিক পেজ নম্বর দিন';
+  const out=await PDFDocument.create();(await out.copyPages(d,idx)).forEach(p=>out.addPage(p));
+  save(await out.save(),base(f)+'-split.pdf');}},
+{id:'del',i:'🗑️',n:'পেজ মুছুন',d:'অপ্রয়োজনীয় পেজ বাদ দিন',a:PDF,o:pagesOpt('কোন কোন পেজ মুছবেন'),
+ run:async([f])=>{const d=await PDFDocument.load(await buf(f),{ignoreEncryption:true});
+  const idx=ranges(v('o1'),d.getPageCount());if(!idx.length)throw'সঠিক পেজ নম্বর দিন';
+  if(idx.length>=d.getPageCount())throw'সব পেজ মোছা যাবে না';
+  idx.reverse().forEach(i=>d.removePage(i));save(await d.save(),base(f)+'-edited.pdf');}},
+{id:'rot',i:'🔄',n:'পিডিএফ ঘোরান',d:'সব পেজ ঘুরিয়ে সোজা করুন',a:PDF,
+ o:'<label>কত ডিগ্রি</label><select id="o1"><option value="90">৯০° ডানে</option><option value="180">১৮০°</option><option value="270">৯০° বামে</option></select>',
+ run:async([f])=>{const d=await PDFDocument.load(await buf(f),{ignoreEncryption:true});
+  d.getPages().forEach(p=>p.setRotation(degrees((p.getRotation().angle+Number(v('o1')))%360)));
+  save(await d.save(),base(f)+'-rotated.pdf');}},
+{id:'img2pdf',i:'🖼️',n:'ছবি থেকে পিডিএফ',d:'JPG/PNG ছবি জুড়ে পিডিএফ বানান',a:IMG,m:1,
+ run:async F=>{const out=await PDFDocument.create();
+  for(const f of F){const bmp=await createImageBitmap(f);
+   const c=document.createElement('canvas');c.width=bmp.width;c.height=bmp.height;
+   const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0);
+   const im=await out.embedJpg(await (await jpg(c,.92)).arrayBuffer());
+   out.addPage([im.width,im.height]).drawImage(im,{x:0,y:0,width:im.width,height:im.height});}
+  save(await out.save(),'images.pdf');}},
+{id:'pdf2img',i:'📸',n:'পিডিএফ থেকে JPG',d:'সব পেজ ছবি হয়ে একটি ZIP ফাইলে সেভ হবে',a:PDF,
+ run:async([f])=>{const z=new JSZip(),imgs=[];
+  await render(f,2,async(c,i,n)=>{st(`পেজ ${i}/${n} তৈরি হচ্ছে...`);
+   const b=await jpg(c,.92);imgs.push(b);z.file(`${base(f)}-page-${String(i).padStart(3,'0')}.jpg`,b);});
+  if(imgs.length===1)return save(imgs[0],base(f)+'.jpg'),0;
+  st('ZIP ফাইল বানানো হচ্ছে...');
+  save(await z.generateAsync({type:'blob'}),base(f)+'-images.zip');}},
+{id:'comp',i:'🗜️',n:'পিডিএফ কমপ্রেস',d:'ফাইলের সাইজ ছোট করুন (টেক্সট ছবি হয়ে যাবে)',a:PDF,
+ o:'<label>মান</label><select id="o1"><option value=".5">মাঝারি কমপ্রেশন</option><option value=".3">বেশি কমপ্রেশন</option><option value=".7">কম কমপ্রেশন</option></select>',
+ run:async([f])=>{const out=await PDFDocument.create();
+  await render(f,1.3,async(c,i,n)=>{st(`পেজ ${i}/${n}...`);
+   const im=await out.embedJpg(await (await jpg(c,Number(v('o1')))).arrayBuffer());
+   out.addPage([c.width/1.3,c.height/1.3]).drawImage(im,{x:0,y:0,width:c.width/1.3,height:c.height/1.3});});
+  const b=await out.save();st(`সাইজ: ${(f.size/1024).toFixed(0)} KB → ${(b.length/1024).toFixed(0)} KB`);
+  save(b,base(f)+'-compressed.pdf');return 1;}},
+{id:'num',i:'🔢',n:'পেজ নম্বর যোগ',d:'প্রতি পেজের নিচে নম্বর বসান',a:PDF,
+ o:'<label>অবস্থান</label><select id="o1"><option value="c">মাঝে</option><option value="r">ডানে</option><option value="l">বামে</option></select>',
+ run:async([f])=>{const d=await PDFDocument.load(await buf(f),{ignoreEncryption:true});
+  const ft=await d.embedFont(StandardFonts.Helvetica),ps=d.getPages();
+  ps.forEach((p,i)=>{const t=`${i+1} / ${ps.length}`,w=ft.widthOfTextAtSize(t,11),W=p.getWidth(),pos=v('o1');
+   p.drawText(t,{x:pos==='c'?(W-w)/2:pos==='r'?W-w-30:30,y:20,size:11,font:ft,color:rgb(.2,.2,.2)});});
+  save(await d.save(),base(f)+'-numbered.pdf');}},
+{id:'wm',i:'💧',n:'ওয়াটারমার্ক',d:'পেজের মাঝে লেখা বসান (বাংলা ও যেকোনো ফন্ট চলবে)',a:PDF,
+ o:`<label>ওয়াটারমার্ক লেখা (বাংলা বা ইংরেজি)</label><input type="text" id="o1" value="গোপনীয়">
+<label>ফন্টের নাম (খালি রাখলে সিস্টেমের ডিফল্ট ফন্ট; যেমন NikoshBAN)</label><input type="text" id="o2" list="fl" placeholder="NikoshBAN" autocomplete="off">
+<label>অথবা ফন্ট ফাইল বেছে নিন (যেমন NikoshBAN.ttf, ইনস্টল না থাকলেও চলবে)</label><input type="file" id="wf" accept=".ttf,.otf,.woff,.woff2">
+<label>লেখার সাইজ</label><input type="number" id="o3" value="60" min="8" max="400">
+<label>স্বচ্ছতা (১ থেকে ১০০, কম মানে বেশি হালকা)</label><input type="number" id="o4" value="25" min="1" max="100">
+<label>কত ডিগ্রি কাত (০ = সোজা)</label><input type="number" id="o5" value="45" min="-180" max="180">
+<label>রং</label><input type="color" id="o6" value="#808080">`,
+ run:async([f])=>{
+  const d=await PDFDocument.load(await buf(f),{ignoreEncryption:true});
+  const t=v('o1').trim()||'DRAFT',file=$('#wf').files[0];let fam=v('o2').trim();
+  if(file){fam=file.name.replace(/\.[^.]+$/,'');const fo=new FontFace(fam,await file.arrayBuffer());await fo.load();document.fonts.add(fo)}
+  else if(fam&&!hasFont(fam))throw`"${fam}" ফন্ট এই কম্পিউটারে পাওয়া যায়নি। ফন্ট ফাইল বেছে নিন বা ফন্টের নাম ঠিক করুন।`;
+  const sz=Math.max(8,+v('o3')||60),op=Math.min(1,Math.max(.01,(+v('o4')||25)/100)),ang=+v('o5')||0,Q=3,fnt=`${sz*Q}px ${fam?ff(fam):FONT}`;
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  x.font=fnt;const w=Math.ceil(x.measureText(t).width)+40,h=Math.ceil(sz*Q*1.5);
+  c.width=w;c.height=h;x.font=fnt;x.fillStyle=v('o6');x.textAlign='center';x.textBaseline='middle';x.fillText(t,w/2,h/2);
+  const im=await d.embedPng(await (await new Promise(r=>c.toBlob(r,'image/png'))).arrayBuffer());
+  const th=ang*Math.PI/180,co=Math.cos(th),si=Math.sin(th);
+  d.getPages().forEach(p=>{const W=p.getWidth(),H=p.getHeight();let iw=w/Q,ih=h/Q;
+   const bw=Math.abs(iw*co)+Math.abs(ih*si),bh=Math.abs(iw*si)+Math.abs(ih*co),k=Math.min(1,.95*W/bw,.95*H/bh);iw*=k;ih*=k;
+   const ox=iw/2*co-ih/2*si,oy=iw/2*si+ih/2*co;
+   p.drawImage(im,{x:W/2-ox,y:H/2-oy,width:iw,height:ih,rotate:degrees(ang),opacity:op})});
+  save(await d.save(),base(f)+'-watermark.pdf');}}
+];
+
+/* ===== পিডিএফ এডিটর ===== */
+const E={tool:'hand',color:'#e5322d',size:18,lw:3,font:'Noto Sans Bengali',bold:false,ital:false,align:'left',pages:[],hist:[],img:null,act:null,buf:null,name:''};
+const FONT='"Noto Sans Bengali","Hind Siliguri",Arial,sans-serif';
+const TL=[['hand','✋','স্ক্রল'],['move','👆','নড়ান/ঘোরান'],['text','T','লেখা'],['draw','✏️','আঁকুন'],['hl','🖍️','হাইলাইট'],['rect','▭','বক্স'],['white','⬜','সাদা'],['img','🖼️','ছবি/সই']];
+const HINT={move:'যেকোনো আইটেম টেনে সরান। প্রতিটি আইটেমে ✥ সরান, ✕ মুছুন, ⟳ ঘোরান (Shift চাপলে ১৫° করে), ◢ সাইজ বদলান — এগুলো সব টুলেই কাজ করে।',hand:'পেজ স্ক্রল করে দেখুন। কাজ করতে উপরের টুল বেছে নিন।',text:'পেজে যেখানে ক্লিক করবেন সেখানে লেখা বসবে (বাংলা চলবে)। ✥ দিয়ে সরান, ✕ দিয়ে মুছুন। বক্সের ডান-নিচের কোণা টেনে চওড়া করুন এবং উপরের বাটনে বাম/মাঝ/ডান/জাস্টিফাই অ্যালাইন করুন।',draw:'মাউস বা আঙুল দিয়ে আঁকুন বা সই করুন।',hl:'টেনে হাইলাইট করুন।',rect:'টেনে বক্স আঁকুন।',white:'টেনে পুরনো লেখা সাদা করে ঢেকে দিন, তারপর লেখা টুল দিয়ে নতুন লেখা বসান।',img:'ছবি বেছে নিন, সেটি পেজের মাঝখানে বসবে। তারপর সরান, সাইজ বদলান বা ঘোরান।'};
+const hint=m=>$('#eh').textContent=m;
+$('#tools').innerHTML=TL.map(t=>`<button data-t="${t[0]}">${t[1]} ${t[2]}</button>`).join('');
+$('#tools').onclick=e=>{const b=e.target.closest('button');if(b)setTool(b.dataset.t)};
+function setTool(t){
+  E.tool=t;if(t!=='text'&&t!=='hand')E.act=null;
+  $('#pg').classList.toggle('act',!['hand','text','move'].includes(t));$('#pg').classList.toggle('mv',t==='move');
+  document.querySelectorAll('#tools button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  hint(HINT[t]);if(t==='img'){E.img=null;$('#ei').click()}
+}
+const FN=['Noto Sans Bengali','Hind Siliguri','NikoshBAN','Nikosh BAN','Nikosh','Kalpurush','SolaimanLipi','Vrinda','Shonar Bangla','Arial','Times New Roman','Calibri','Verdana','Tahoma','Georgia','Courier New','Comic Sans MS','Segoe UI'];
+const setFL=a=>$('#fl').innerHTML=a.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');let FL=FN.slice();const UP=[];setFL(FL);
+const ff=n=>`"${n.replace(/["';{}\\]/g,'')}",${FONT}`;
+const hasFont=n=>{const c=document.createElement('canvas').getContext('2d'),t='mmmmmmmmmmlli১২৩অআকখ';
+  const w=f=>(c.font=`40px ${f}`,c.measureText(t).width);return['monospace','serif','sans-serif'].some(b=>w(`"${n}",${b}`)!==w(b))};
+function style(ed){
+  ed.dataset.f=E.font;ed.dataset.s=E.size;ed.dataset.c=E.color;ed.dataset.b=E.bold?'1':'';ed.dataset.i=E.ital?'1':'';ed.dataset.a=E.align;ed.style.textAlign=E.align;
+  ed.style.fontFamily=ff(E.font);ed.style.fontSize=E.size+'px';ed.style.color=E.color;
+  ed.style.fontWeight=E.bold?'bold':'normal';ed.style.fontStyle=E.ital?'italic':'normal';
+}
+function ui(){
+  $('#ef').value=E.font;$('#es').value=E.size;$('#ec').value=E.color;
+  document.querySelectorAll('#eal button').forEach(b=>b.classList.toggle('on',b.dataset.a===E.align));$('#ebd').classList.toggle('on',E.bold);$('#eit').classList.toggle('on',E.ital);
+}
+function desel(){document.querySelectorAll('.ed.sel').forEach(x=>x.classList.remove('sel'))}
+function sync(ed){
+  desel();ed.classList.add('sel');E.act=ed;E.font=ed.dataset.f;E.size=+ed.dataset.s;E.color=ed.dataset.c;
+  E.bold=!!ed.dataset.b;E.ital=!!ed.dataset.i;E.align=ed.dataset.a||'left';ui();hint('এই লেখাটি এডিট হচ্ছে (নীল বর্ডার)। ফন্ট, সাইজ, রং উপরে বদলাতে পারবেন।');
+}
+const ft=()=>E.act&&E.act.isConnected;
+const upd=()=>{if(ft())style(E.act)};
+$('#ec').oninput=e=>{E.color=e.target.value;upd()};
+$('#es').oninput=e=>{E.size=+e.target.value||18;upd()};
+$('#eal').onclick=e=>{const b=e.target.closest('button');if(!b)return;E.align=b.dataset.a;ui();upd()};
+$('#ebd').onclick=()=>{E.bold=!E.bold;ui();upd()};
+$('#eit').onclick=()=>{E.ital=!E.ital;ui();upd()};
+$('#ef').onfocus=e=>{e.target.dataset.o=e.target.value;e.target.value=''};
+$('#ef').onblur=e=>{if(!e.target.value.trim())e.target.value=e.target.dataset.o};
+$('#ef').oninput=e=>{const n=e.target.value.trim();if(!n)return;E.font=n;upd();
+  hint(hasFont(n)?`✅ "${n}" ফন্ট পাওয়া গেছে`:`⚠️ "${n}" নামে ফন্ট পাওয়া যায়নি, ডিফল্ট ফন্ট দেখাবে`)};
+$('#efl').onclick=async()=>{
+  if(!window.queryLocalFonts)return hint('এই ব্রাউজারে ফন্টের তালিকা পাওয়া যায় না। Chrome বা Edge ব্যবহার করুন, অথবা ফন্ট ঘরে ফন্টের নাম নিজে লিখুন।');
+  try{const l=await queryLocalFonts(),n=[...new Set(l.map(f=>f.family))].sort();FL=[...new Set(UP.concat(n))];setFL(FL);
+    hint(`${n.length}টি ফন্ট পাওয়া গেছে। ফন্ট ঘরে ক্লিক করে তালিকা থেকে বেছে নিন বা নাম লিখুন।`)}
+  catch(e){hint('ফন্ট দেখার অনুমতি দেওয়া হয়নি। ফন্ট ঘরে নাম লিখেও ব্যবহার করতে পারেন।')}
+};
+$('#eff').onclick=()=>$('#eft').click();
+$('#eft').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const n=f.name.replace(/\.[^.]+$/,''),fo=new FontFace(n,await f.arrayBuffer());
+    await fo.load();document.fonts.add(fo);UP.unshift(n);FL=[...new Set(UP.concat(FL))];setFL(FL);
+    E.font=n;ui();upd();hint(`✅ "${n}" ফন্ট ফাইল থেকে যুক্ত হয়েছে এবং ব্যবহার হচ্ছে।`)}
+  catch(err){console.error(err);hint('❌ ফন্ট ফাইলটি পড়া যায়নি।')}
+};
+$('#evw').onclick=()=>{const on=$('#pg').classList.toggle('nomk');$('#evw').classList.toggle('on',on);
+  hint(on?'প্রিভিউ: সেভ করলে ঠিক এমন দেখাবে (চিহ্ন ও ✕ বাটন থাকবে না)।':HINT[E.tool])};
+const KN={draw:'আঁকা',hl:'হাইলাইট',rect:'বক্স',white:'সাদা',img:'ছবি'};
+function bbox(it){
+  if(it.t==='draw'){let a=1e9,b=1e9,c=-1e9,d=-1e9;it.p.forEach(q=>{a=Math.min(a,q[0]);b=Math.min(b,q[1]);c=Math.max(c,q[0]);d=Math.max(d,q[1])});
+    const r=it.w/2+2;return[a-r,b-r,c-a+2*r,d-b+2*r]}
+  return[it.x,it.y,it.w,it.h];
+}
+function track(el,start){
+  el.onpointerdown=e=>{e.stopPropagation();e.preventDefault();const mv=start(e);el.setPointerCapture(e.pointerId);
+    el.onpointermove=mv;el.onpointerup=el.onpointercancel=()=>{el.onpointermove=null;el.onpointerup=null}};
+}
+const snapA=(r,e)=>e.shiftKey?Math.round(r/(Math.PI/12))*Math.PI/12:r;
+function refresh(P,it){
+  const[x,y,w,h]=bbox(it);
+  Object.assign(it.mk.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',transform:`rotate(${it.r||0}rad)`});
+  paint(P.o.getContext('2d'),P,1);
+}
+function mark(P,it){
+  const m=document.createElement('div');m.className='mk';
+  m.innerHTML=`<i>${KN[it.t]}</i><span class="mvh" title="সরান">✥</span><b title="মুছুন">✕</b><span class="rh" title="ঘোরান">⟳</span><span class="sh" title="সাইজ বদলান">◢</span>`;
+  const b=m.querySelector('b');b.onpointerdown=e=>e.stopPropagation();b.onclick=()=>delItem(P,it);
+  P.w.append(m);it.mk=m;refresh(P,it);
+  const mvStart=e=>{const x0=e.clientX,y0=e.clientY,o=it.p?it.p.map(q=>q.slice()):[it.x,it.y];
+    return ev=>{const dx=ev.clientX-x0,dy=ev.clientY-y0;
+      if(it.p)it.p=o.map(q=>[q[0]+dx,q[1]+dy]);else{it.x=o[0]+dx;it.y=o[1]+dy}refresh(P,it)}};
+  track(m,mvStart);track(m.querySelector('.mvh'),mvStart);
+  track(m.querySelector('.rh'),e=>{const r=m.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,
+    a0=Math.atan2(e.clientY-cy,e.clientX-cx),r0=it.r||0;
+    return ev=>{it.r=snapA(r0+Math.atan2(ev.clientY-cy,ev.clientX-cx)-a0,ev);refresh(P,it)}});
+  track(m.querySelector('.sh'),e=>{const bb=bbox(it),cx=bb[0]+bb[2]/2,cy=bb[1]+bb[3]/2,w0=bb[2],h0=bb[3],
+    c=it.r||0,x0=e.clientX,y0=e.clientY,o=it.p&&it.p.map(q=>q.slice());
+    return ev=>{const dx=ev.clientX-x0,dy=ev.clientY-y0,
+      lx=dx*Math.cos(c)+dy*Math.sin(c),ly=-dx*Math.sin(c)+dy*Math.cos(c),
+      nw=Math.max(8,w0+2*lx),nh=Math.max(8,h0+2*ly);
+      if(it.p)it.p=o.map(q=>[cx+(q[0]-cx)*nw/w0,cy+(q[1]-cy)*nh/h0]);
+      else{it.w=nw;it.h=nh;it.x=cx-nw/2;it.y=cy-nh/2}
+      refresh(P,it)}});
+}
+function delItem(P,it){
+  P.items=P.items.filter(z=>z!==it);if(it.mk)it.mk.remove();
+  E.hist=E.hist.filter(h=>h.it!==it);paint(P.o.getContext('2d'),P,1);
+}
+$('#ew').oninput=e=>E.lw=+e.target.value||3;
+function visPage(){
+  const r=$('#pg').getBoundingClientRect();let best=null,bv=-1e9;
+  E.pages.forEach(P=>{const q=P.w.getBoundingClientRect(),top=Math.max(q.top,r.top),bot=Math.min(q.bottom,r.bottom),v=bot-top;
+    if(v>bv){bv=v;best=P;P.cy=Math.min(P.o.height-20,Math.max(20,(top+bot)/2-q.top))}});
+  return best;
+}
+function putImg(P,im){
+  const sc=Math.min(2,P.o.width*.35/im.width),w=im.width*sc,h=im.height*sc;
+  const it={t:'img',im,x:P.o.width/2-w/2,y:P.cy-h/2,w,h};
+  P.items.push(it);E.hist.push({P,it});mark(P,it);paint(P.o.getContext('2d'),P,1);
+}
+$('#ei').onchange=e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  const im=new Image();
+  im.onload=()=>{const P=visPage();if(!P)return;putImg(P,im);E.img=null;setTool('move');
+    hint('✅ ছবি যোগ হয়েছে। ✥ দিয়ে সরান, ◢ দিয়ে সাইজ বদলান, ⟳ দিয়ে ঘোরান, ✕ দিয়ে মুছুন।')};
+  im.onerror=()=>hint('❌ এই ছবিটি পড়া যায়নি। JPG, PNG বা WebP ছবি ব্যবহার করুন।');
+  im.src=URL.createObjectURL(f);
+};
+
+function paint(ctx,P,k,tmp){
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.save();ctx.scale(k,k);
+  P.items.concat(tmp?[tmp]:[]).forEach(it=>{
+    ctx.save();
+    if(it.r){const b=bbox(it),cx=b[0]+b[2]/2,cy=b[1]+b[3]/2;ctx.translate(cx,cy);ctx.rotate(it.r);ctx.translate(-cx,-cy)}
+    if(it.t==='draw'){ctx.strokeStyle=it.c;ctx.lineWidth=it.w;ctx.lineCap=ctx.lineJoin='round';ctx.beginPath();
+      it.p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));if(it.p.length===1)ctx.lineTo(it.p[0][0]+.1,it.p[0][1]);ctx.stroke()}
+    else if(it.t==='hl'){ctx.globalAlpha=.35;ctx.fillStyle=it.c;ctx.fillRect(it.x,it.y,it.w,it.h)}
+    else if(it.t==='rect'){ctx.strokeStyle=it.c;ctx.lineWidth=it.lw;ctx.strokeRect(it.x,it.y,it.w,it.h)}
+    else if(it.t==='white'){ctx.fillStyle='#fff';ctx.fillRect(it.x,it.y,it.w,it.h)}
+    else if(it.t==='img')ctx.drawImage(it.im,it.x,it.y,it.w,it.h);
+    ctx.restore()});
+  ctx.restore();
+}
+function mk(t,a,b){
+  const x=Math.min(a[0],b[0]),y=Math.min(a[1],b[1]),w=Math.abs(b[0]-a[0]),h=Math.abs(b[1]-a[1]);
+  return t==='img'?{t,im:E.img,x,y,w,h}:t==='rect'?{t,c:E.color,lw:E.lw,x,y,w,h}:{t,c:E.color,x,y,w,h};
+}
+function bind(P){
+  const o=P.o;let s=null;
+  const pos=e=>{const r=o.getBoundingClientRect();return[(e.clientX-r.left)*o.width/r.width,(e.clientY-r.top)*o.height/r.height]};
+  o.onpointerdown=e=>{
+    const t=E.tool;if(t==='hand'||t==='move')return;const p=pos(e);
+    if(t==='text'){addText(P,p[0],p[1]);return}
+    if(t==='img'&&!E.img)return;
+    desel();E.act=null;o.setPointerCapture(e.pointerId);s={p,t};
+    if(t==='draw')s.it={t:'draw',c:E.color,w:E.lw,p:[p]};
+  };
+  o.onpointermove=e=>{
+    if(!s)return;const p=pos(e);let it;
+    if(s.t==='draw'){s.it.p.push(p);it=s.it}else it=mk(s.t,s.p,p);
+    s.cur=it;paint(o.getContext('2d'),P,1,it);
+  };
+  o.onpointerup=o.onpointercancel=()=>{
+    if(!s)return;const it=s.cur||s.it;s=null;
+    if(it&&(it.t==='draw'||(it.w>3&&it.h>3))){P.items.push(it);E.hist.push({P,it});mark(P,it)}
+    paint(o.getContext('2d'),P,1);
+  };
+}
+function addText(P,x,y){
+  const d=document.createElement('div');d.className='tx';d.style.left=x+'px';d.style.top=y+'px';
+  d.innerHTML='<span class="hd" title="সরান">✥</span><span class="dl" title="মুছুন">✕</span><span class="rt" title="ঘোরান">⟳</span><div class="ed" contenteditable="true"></div>';
+  const ed=d.querySelector('.ed');style(ed);ed.style.width=Math.max(60,Math.min(220,P.o.width-x-10))+'px';
+  P.w.append(d);P.texts.push(d);E.hist.push({P,el:d});
+  ed.onfocus=()=>sync(ed);ed.focus();
+  d.querySelector('.dl').onclick=()=>{d.remove();P.texts=P.texts.filter(z=>z!==d);E.hist=E.hist.filter(h=>h.el!==d);if(E.act===ed)E.act=null};
+  const h=d.querySelector('.hd');let m=null;
+  h.onpointerdown=e=>{h.setPointerCapture(e.pointerId);m=[e.clientX-d.offsetLeft,e.clientY-d.offsetTop]};
+  h.onpointermove=e=>{if(m){d.style.left=(e.clientX-m[0])+'px';d.style.top=(e.clientY-m[1])+'px'}};
+  h.onpointerup=()=>m=null;
+  track(d.querySelector('.rt'),e=>{const r=d.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,
+    a0=Math.atan2(e.clientY-cy,e.clientX-cx),r0=+d.dataset.r||0;
+    return ev=>{const r1=snapA(r0+Math.atan2(ev.clientY-cy,ev.clientX-cx)-a0,ev);d.dataset.r=r1;d.style.transform=`rotate(${r1}rad)`}});
+}
+$('#eu').onclick=()=>{
+  const h=E.hist.pop();if(!h)return;
+  if(h.el){h.el.remove();h.P.texts=h.P.texts.filter(z=>z!==h.el)}
+  else{if(h.it.mk)h.it.mk.remove();h.P.items=h.P.items.filter(z=>z!==h.it);paint(h.P.o.getContext('2d'),h.P,1)}
+};
+$('#ex').onclick=()=>{
+  if(E.hist.length&&!confirm('সেভ না করে বন্ধ করবেন? সব পরিবর্তন মুছে যাবে।'))return;
+  $('#ed').hidden=true;document.body.style.overflow='';$('#pg').innerHTML='';E.pages=[];E.hist=[];st('');
+};
+async function openEditor(f){
+  E.name=base(f);E.buf=await buf(f);E.hist=[];E.pages=[];E.act=null;
+  const doc=await pdfjsLib.getDocument({data:new Uint8Array(E.buf.slice(0))}).promise,box=$('#pg');box.innerHTML='';
+  for(let i=1;i<=doc.numPages;i++){
+    st(`পেজ ${i}/${doc.numPages} লোড হচ্ছে...`);
+    const pg=await doc.getPage(i),v1=pg.getViewport({scale:1});
+    const S=Math.min(2,(Math.min(innerWidth,960)-24)/v1.width),vp=pg.getViewport({scale:S});
+    const w=document.createElement('div');w.className='pw';w.style.width=vp.width+'px';w.style.height=vp.height+'px';
+    const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+    await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    const o=document.createElement('canvas');o.width=vp.width;o.height=vp.height;o.className='ov';
+    w.append(c,o);box.append(w);
+    const P={w,o,S,items:[],texts:[],pw:v1.width,ph:v1.height};E.pages.push(P);bind(P);
+  }
+  $('#pg').classList.remove('nomk');$('#evw').classList.remove('on');ui();
+  $('#ed').hidden=false;document.body.style.overflow='hidden';st('');setTool('hand');
+}
+$('#esv').onclick=async()=>{
+  const b=$('#esv');b.disabled=true;hint('সেভ হচ্ছে, অপেক্ষা করুন...');
+  try{
+    const pdf=await PDFDocument.load(E.buf,{ignoreEncryption:true}),pgs=pdf.getPages(),Q=2.5;
+    for(let i=0;i<E.pages.length;i++){
+      const P=E.pages[i],tx=P.texts.filter(d=>d.querySelector('.ed').innerText.trim());
+      if(!P.items.length&&!tx.length)continue;
+      const c=document.createElement('canvas');c.width=Math.round(P.pw*Q);c.height=Math.round(P.ph*Q);
+      const k=Q/P.S,x=c.getContext('2d');paint(x,P,k);
+      x.save();x.scale(k,k);x.textBaseline='top';
+      tx.forEach(d=>{const ed=d.querySelector('.ed'),fs=parseFloat(ed.style.fontSize),r=+d.dataset.r||0;
+        x.save();
+        if(r){const cx=d.offsetLeft+d.offsetWidth/2,cy=d.offsetTop+d.offsetHeight/2;x.translate(cx,cy);x.rotate(r);x.translate(-cx,-cy)}
+        x.font=`${ed.style.fontStyle==='italic'?'italic ':''}${ed.style.fontWeight==='bold'?'bold ':''}${fs}px ${ed.style.fontFamily}`;x.fillStyle=ed.style.color;
+        const cw=ed.clientWidth-4,al=ed.dataset.a||'left',x0=d.offsetLeft+3;let row=0;
+        ed.innerText.replace(/\n+$/,'').split('\n').forEach(para=>{
+          let line=[];
+          const flush=last=>{const txt=line.join(' '),w=x.measureText(txt).width,y=d.offsetTop+3+row*fs*1.3+fs*.15;
+            if(al==='justify'&&!last&&line.length>1){const ws=line.map(t=>x.measureText(t).width),
+              sp=(cw-ws.reduce((a,b)=>a+b,0))/(line.length-1);let cx=x0;line.forEach((t,i)=>{x.fillText(t,cx,y);cx+=ws[i]+sp})}
+            else x.fillText(txt,al==='center'?x0+(cw-w)/2:al==='right'?x0+cw-w:x0,y);
+            row++;line=[]};
+          para.split(' ').forEach(wd=>{if(line.length&&x.measureText(line.concat(wd).join(' ')).width>cw+1)flush(false);line.push(wd)});
+          flush(true)});
+        x.restore()});
+      x.restore();
+      const png=await new Promise(r=>c.toBlob(r,'image/png'));
+      const im=await pdf.embedPng(await png.arrayBuffer()),pg=pgs[i];
+      pg.drawImage(im,{x:0,y:0,width:pg.getWidth(),height:pg.getHeight()});
+    }
+    save(await pdf.save(),E.name+'-edited.pdf');hint('✅ সেভ হয়েছে, ফাইল ডাউনলোড হয়েছে।');
+  }catch(e){console.error(e);hint('❌ সেভ করতে সমস্যা হয়েছে।')}
+  b.disabled=false;
+};
+
+let cur=null,files=[];
+$('#grid').innerHTML=T.map(t=>`<div class="t" data-id="${t.id}"><i>${t.i}</i><b>${t.n}</b><small>${t.d}</small></div>`).join('');
+$('#grid').onclick=e=>{const c=e.target.closest('.t');if(c)pick(c.dataset.id)};
+function pick(id){
+  if(id==='ocr'){openOcr();return}
+  cur=T.find(t=>t.id===id);files=[];
+  document.querySelectorAll('.t').forEach(x=>x.classList.toggle('on',x.dataset.id===id));
+  $('#panel').hidden=false;$('#pt').textContent=cur.n;$('#pd').textContent=cur.d;
+  $('#fi').accept=cur.a;$('#fi').multiple=!!cur.m;$('#fi').value='';
+  $('#opts').innerHTML=cur.o||'';st('');draw();
+  $('#panel').scrollIntoView({behavior:'smooth'});
+}
+function draw(){
+  $('#list').innerHTML=files.map((f,i)=>`<li><span>${f.name} (${(f.size/1024).toFixed(0)} KB)</span><button data-i="${i}">✕</button></li>`).join('');
+}
+$('#list').onclick=e=>{const b=e.target.closest('button');if(b){files.splice(b.dataset.i,1);draw()}};
+function add(list){
+  const a=[...list];files=cur.m?files.concat(a):a.slice(0,1);draw();
+}
+$('#drop').onclick=()=>$('#fi').click();
+$('#fi').onchange=e=>{add(e.target.files);e.target.value=''};
+$('#drop').ondragover=e=>{e.preventDefault();$('#drop').classList.add('h')};
+$('#drop').ondragleave=()=>$('#drop').classList.remove('h');
+$('#drop').ondrop=e=>{e.preventDefault();$('#drop').classList.remove('h');add(e.dataTransfer.files)};
+$('#go').onclick=async()=>{
+  if(!files.length)return st('আগে ফাইল বেছে নিন');
+  if(cur.min&&files.length<cur.min)return st(`কমপক্ষে ${cur.min}টি ফাইল দিন`);
+  $('#go').disabled=true;st('কাজ চলছে, অপেক্ষা করুন...');
+  try{const keep=await cur.run(files);if(!keep)st('✅ সম্পন্ন! ফাইল ডাউনলোড হয়েছে।')}
+  catch(e){console.error(e);st('❌ সমস্যা: '+(typeof e==='string'?e:'ফাইলটি পড়া যায়নি (পাসওয়ার্ড দেওয়া বা নষ্ট হতে পারে)'))}
+  $('#go').disabled=false;
+};
+</script>
+<script>
+(function(){
+
+const $ = s => document.querySelector(s);
+const ocrEl = document.getElementById('ocr');
+const LANGPATH = {
+  best: 'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0_best',
+  fast: 'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0_fast'
+};
+
+let files = [], worker = null, workerKey = '', onLog = () => {}, cancel = false;
+
+/* ---------- ফাইল বাছাই ---------- */
+function setFiles(list) {
+  files = [...list];
+  $('#oc-flist').textContent = files.length ? files.map(f => f.name).join(' • ') : 'কোনো ফাইল বাছাই করা হয়নি';
+  $('#oc-go').disabled = !files.length;
+  $('#oc-cropBtn').disabled = !files.length;
+  crop = null; $('#oc-cropClr').classList.add('hide'); $('#oc-cropbox').classList.add('hide');
+}
+$('#oc-drop').onclick = () => $('#oc-pick').click();
+$('#oc-pick').onchange = e => setFiles(e.target.files);
+['dragover', 'dragenter'].forEach(ev => $('#oc-drop').addEventListener(ev, e => { e.preventDefault(); $('#oc-drop').classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => $('#oc-drop').addEventListener(ev, e => { e.preventDefault(); $('#oc-drop').classList.remove('over'); }));
+$('#oc-drop').addEventListener('drop', e => setFiles(e.dataTransfer.files));
+document.addEventListener('paste', e => {
+  if (ocrEl.hidden) return;
+  const fl = [...(e.clipboardData?.files || [])];
+  if (fl.length) setFiles(fl.map((f, i) => f.name && f.name !== 'image.png' ? f : new File([f], 'পেস্ট-করা-ছবি-' + (i + 1) + '.png', { type: f.type })));
+});
+$('#oc-clr').onclick = () => { setFiles([]); $('#oc-results').innerHTML = ''; $('#oc-all').classList.add('hide'); $('#oc-pick').value = ''; };
+$('#oc-stop').onclick = () => { cancel = true; $('#oc-stop').disabled = true; };
+
+/* ---------- ক্রপ ---------- */
+async function previewCanvas(file) {
+  if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    const page = await pdf.getPage(1);
+    const vp = page.getViewport({ scale: 1.5 });
+    const cv = newCanvas(Math.round(vp.width), Math.round(vp.height));
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    await page.render({ canvasContext: cx, viewport: vp }).promise;
+    return cv;
+  }
+  const bmp = await createImageBitmap(file);
+  const cv = newCanvas(bmp.width, bmp.height);
+  cv.getContext('2d').drawImage(bmp, 0, 0);
+  return cv;
+}
+$('#oc-cropBtn').onclick = async () => {
+  if (!files.length) return;
+  $('#oc-cropst').textContent = 'প্রিভিউ তৈরি হচ্ছে...';
+  let src;
+  try { src = await previewCanvas(files[0]); } catch (e) { $('#oc-cropst').textContent = 'প্রিভিউ হয়নি: ' + e.message; return; }
+  const cv = $('#oc-cropcv'), s = Math.min(1, 900 / src.width);
+  cv.width = Math.round(src.width * s); cv.height = Math.round(src.height * s);
+  $('#oc-cropbox').classList.remove('hide');
+  $('#oc-cropst').textContent = 'মাউস টেনে শুধু লেখার অংশ ঘিরে দিন (প্রথম ফাইলের প্রথম পাতা, বাকি সব পাতায়ও একই অংশ কাটা হবে)';
+  const cx = cv.getContext('2d');
+  let sel = null, start = null;
+  const draw = () => {
+    cx.drawImage(src, 0, 0, cv.width, cv.height);
+    if (!sel) return;
+    cx.fillStyle = 'rgba(0,0,0,.4)';
+    cx.fillRect(0, 0, cv.width, sel.y);
+    cx.fillRect(0, sel.y + sel.h, cv.width, cv.height - sel.y - sel.h);
+    cx.fillRect(0, sel.y, sel.x, sel.h);
+    cx.fillRect(sel.x + sel.w, sel.y, cv.width - sel.x - sel.w, sel.h);
+    cx.strokeStyle = '#2563eb'; cx.lineWidth = 2; cx.strokeRect(sel.x, sel.y, sel.w, sel.h);
+  };
+  const pos = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height }; };
+  cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); start = pos(e); sel = { x: start.x, y: start.y, w: 0, h: 0 }; };
+  cv.onpointermove = e => {
+    if (!start) return;
+    const p = pos(e);
+    sel = { x: Math.max(0, Math.min(start.x, p.x)), y: Math.max(0, Math.min(start.y, p.y)),
+            w: Math.min(cv.width, Math.abs(p.x - start.x)), h: Math.min(cv.height, Math.abs(p.y - start.y)) };
+    draw();
+  };
+  cv.onpointerup = () => {
+    start = null;
+    if (sel && sel.w > 10 && sel.h > 10) {
+      crop = { x: sel.x / cv.width, y: sel.y / cv.height, w: sel.w / cv.width, h: sel.h / cv.height };
+      $('#oc-cropst').textContent = 'ক্রপ ঠিক হয়েছে ✔ এখন "OCR শুরু করুন" চাপুন';
+      $('#oc-cropClr').classList.remove('hide');
+    } else { sel = null; draw(); }
+  };
+  draw();
+};
+$('#oc-cropClr').onclick = () => { crop = null; $('#oc-cropbox').classList.add('hide'); $('#oc-cropClr').classList.add('hide'); $('#oc-cropst').textContent = 'ক্রপ সরানো হয়েছে, পুরো ছবি পড়া হবে'; };
+
+/* ---------- ইমেজ প্রিপ্রসেসিং ---------- */
+function newCanvas(w, h) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; return c;
+}
+/* লেখার লাইনের উচ্চতা মেপে ছবির আকার ঠিক করা (OCR-এর জন্য ~৩২px সবচেয়ে ভালো) */
+function inkRun(src) {
+  const g = grayOf(src), w = src.width, h = src.height, th = otsu(g);
+  const minInk = Math.max(2, w * 0.002), runs = [];
+  let run = 0;
+  for (let y = 0; y < h; y++) {
+    let n = 0; const o = y * w;
+    for (let x = 0; x < w; x++) if (g[o + x] < th) n++;
+    if (n > minInk) run++; else { if (run) runs.push(run); run = 0; }
+  }
+  if (run) runs.push(run);
+  const good = runs.filter(r => r >= 3 && r < h * 0.5).sort((a, b) => a - b);
+  return good.length >= 3 ? good[good.length >> 1] : null;
+}
+function scaled(src) {
+  const h0 = inkRun(src);
+  let s;
+  if (h0) s = Math.min(3, Math.max(0.5, 32 / h0));
+  else s = Math.min(2.5, Math.max(1, 1600 / Math.max(src.width, src.height)));
+  const longest = Math.max(src.width, src.height) * s;
+  if (longest > 4500) s *= 4500 / longest;
+  const c = newCanvas(Math.round(src.width * s), Math.round(src.height * s));
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  x.imageSmoothingQuality = 'high';
+  x.drawImage(src, 0, 0, c.width, c.height);
+  return c;
+}
+function grayOf(c) {
+  const d = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
+  const g = new Uint8ClampedArray(c.width * c.height);
+  for (let i = 0, j = 0; j < g.length; i += 4, j++) g[j] = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000;
+  return g;
+}
+function canvasOfGray(g, w, h) {
+  const c = newCanvas(w, h), x = c.getContext('2d');
+  const id = x.createImageData(w, h), d = id.data;
+  for (let i = 0, j = 0; j < g.length; j++, i += 4) { d[i] = d[i + 1] = d[i + 2] = g[j]; d[i + 3] = 255; }
+  x.putImageData(id, 0, 0);
+  return c;
+}
+function otsu(g) {
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < g.length; i++) hist[g[i]]++;
+  let total = g.length, sum = 0;
+  for (let i = 0; i < 256; i++) sum += i * hist[i];
+  let sB = 0, wB = 0, max = 0, th = 127;
+  for (let i = 0; i < 256; i++) {
+    wB += hist[i]; if (!wB) continue;
+    const wF = total - wB; if (!wF) break;
+    sB += i * hist[i];
+    const mB = sB / wB, mF = (sum - sB) / wF;
+    const v = wB * wF * (mB - mF) * (mB - mF);
+    if (v > max) { max = v; th = i; }
+  }
+  return th;
+}
+function findSkew(g, w, h) {
+  const f = Math.max(1, Math.floor(Math.max(w, h) / 700));
+  const th = otsu(g), xs = [], ys = [];
+  for (let y = 0; y < h; y += f) for (let x = 0; x < w; x += f) if (g[y * w + x] < th) { xs.push(x / f); ys.push(y / f); }
+  if (xs.length < 500) return 0;
+  const H = Math.ceil(Math.hypot(w, h) / f) + 4, off = H / 2, hist = new Float64Array(H);
+  let best = 0, bs = -1;
+  for (let a = -5; a <= 5.001; a += 0.5) {
+    hist.fill(0);
+    const r = a * Math.PI / 180, sn = Math.sin(r), cs = Math.cos(r);
+    for (let i = 0; i < xs.length; i++) {
+      const yy = Math.round(ys[i] * cs - xs[i] * sn + off);
+      if (yy >= 0 && yy < H) hist[yy]++;
+    }
+    let s = 0; for (let k = 0; k < H; k++) s += hist[k] * hist[k];
+    if (s > bs) { bs = s; best = a; }
+  }
+  return best;
+}
+function rotated(c, deg) {
+  const o = newCanvas(c.width, c.height), x = o.getContext('2d', { willReadFrequently: true });
+  x.fillStyle = '#fff'; x.fillRect(0, 0, o.width, o.height);
+  x.translate(o.width / 2, o.height / 2);
+  x.rotate(-deg * Math.PI / 180);
+  x.drawImage(c, -c.width / 2, -c.height / 2);
+  return o;
+}
+function stretch(g) {
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < g.length; i++) hist[g[i]]++;
+  const cut = g.length * 0.01;
+  let lo = 0, hi = 255, acc = 0;
+  for (let i = 0; i < 256; i++) { acc += hist[i]; if (acc > cut) { lo = i; break; } }
+  acc = 0;
+  for (let i = 255; i >= 0; i--) { acc += hist[i]; if (acc > cut) { hi = i; break; } }
+  if (hi - lo < 20) return;
+  const k = 255 / (hi - lo);
+  for (let i = 0; i < g.length; i++) { const v = (g[i] - lo) * k; g[i] = v < 0 ? 0 : v > 255 ? 255 : v; }
+}
+function adaptive(g, w, h) {
+  const r = Math.max(12, Math.round(Math.max(w, h) / 80)), C = 10;
+  const W = w + 1, I = new Float64Array(W * (h + 1));
+  for (let y = 0; y < h; y++) {
+    let row = 0;
+    for (let x = 0; x < w; x++) { row += g[y * w + x]; I[(y + 1) * W + x + 1] = I[y * W + x + 1] + row; }
+  }
+  const out = new Uint8ClampedArray(g.length);
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1);
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.max(0, x - r), x1 = Math.min(w, x + r + 1);
+      const sum = I[y1 * W + x1] - I[y0 * W + x1] - I[y1 * W + x0] + I[y0 * W + x0];
+      const mean = sum / ((x1 - x0) * (y1 - y0));
+      out[y * w + x] = g[y * w + x] < mean - C ? 0 : 255;
+    }
+  }
+  return out;
+}
+let crop = null;
+function applyCrop(src) {
+  if (!crop) return src;
+  const x = Math.round(crop.x * src.width), y = Math.round(crop.y * src.height);
+  const w = Math.max(1, Math.round(crop.w * src.width)), h = Math.max(1, Math.round(crop.h * src.height));
+  const c = newCanvas(w, h);
+  c.getContext('2d', { willReadFrequently: true }).drawImage(src, x, y, w, h, 0, 0, w, h);
+  return c;
+}
+function free(c) { if (c) { c.width = 0; c.height = 0; } }
+
+/* ---------- OCR ইঞ্জিন ---------- */
+const BN = {
+  'loading tesseract core': 'ইঞ্জিন লোড হচ্ছে...',
+  'initializing tesseract': 'ইঞ্জিন চালু হচ্ছে...',
+  'loading language traineddata': 'ভাষা ডেটা নামছে (প্রথমবার সময় লাগবে)...',
+  'initializing api': 'প্রস্তুত হচ্ছে...'
+};
+async function getWorker() {
+  const lang = $('#oc-lang').value, q = $('#oc-quality').value, key = lang + '|' + q;
+  if (!worker || workerKey !== key) {
+    if (worker) { await worker.terminate(); worker = null; }
+    worker = await Tesseract.createWorker(lang, 1, { langPath: LANGPATH[q], logger: m => onLog(m) });
+    workerKey = key;
+  }
+  await worker.setParameters({
+    tessedit_pageseg_mode: $('#oc-psm').value,
+    preserve_interword_spaces: '1',
+    user_defined_dpi: '300',
+    tessedit_char_blacklist: ($('#oc-nolatin').checked && lang === 'ben') ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' : ''
+  });
+  return worker;
+}
+async function recognize(w, canvas, name) {
+  const { data } = await w.recognize(canvas);
+  return { text: (data.text || '').trim(), conf: data.confidence || 0, name };
+}
+async function ocrCanvas(src) {
+  const w = await getWorker();
+  const mode = $('#oc-mode').value;
+  const cropped = applyCrop(src);
+  let base = scaled(cropped);
+  if (cropped !== src) free(cropped);
+  if ($('#oc-deskew').checked) {
+    const ang = findSkew(grayOf(base), base.width, base.height);
+    if (Math.abs(ang) > 0.2) { const r = rotated(base, ang); free(base); base = r; }
+  }
+  const W = base.width, H = base.height;
+  let result;
+  if (mode === 'none') {
+    result = await recognize(w, base, 'আসল');
+  } else {
+    const g = grayOf(base); stretch(g);
+    const wantClean = mode === 'clean' || mode === 'auto';
+    let r1 = null;
+    if (wantClean) {
+      const cc = canvasOfGray(g, W, H);
+      r1 = await recognize(w, cc, 'কন্ট্রাস্ট'); free(cc);
+    }
+    if (mode === 'binary' || (mode === 'auto' && r1.conf < 85 && !cancel)) {
+      const bc = canvasOfGray(adaptive(g, W, H), W, H);
+      const r2 = await recognize(w, bc, 'থ্রেশহোল্ড'); free(bc);
+      result = (!r1 || r2.conf > r1.conf) ? r2 : r1;
+    } else result = r1;
+  }
+  free(base);
+  return result;
+}
+
+/* ---------- কার্ড UI ---------- */
+function makeCard(name) {
+  const d = document.createElement('div');
+  d.className = 'card';
+  d.innerHTML = '<div class="head"><span class="name"></span><span class="st">অপেক্ষায়...</span></div>' +
+    '<div class="bar"><i></i></div><textarea placeholder="ফলাফল এখানে আসবে..."></textarea>' +
+    '<div class="acts"><button class="sec cp">কপি</button><button class="sec dl">.txt সেভ</button><button class="sec ai">AI দিয়ে বানান শুধরান</button></div>' +
+    '<div class="fixbox hide"><label style="margin-top:10px">শুধরানো ফলাফল (AI)</label><textarea class="fix"></textarea>' +
+    '<div class="acts"><button class="sec cp2">কপি</button><button class="sec dl2">.txt সেভ</button></div></div>';
+  d.querySelector('.name').textContent = name;
+  const ta = d.querySelector('textarea');
+  d.querySelector('.cp').onclick = async e => {
+    try { await navigator.clipboard.writeText(ta.value); } catch (_) { ta.select(); document.execCommand('copy'); }
+    e.target.textContent = 'কপি হয়েছে ✔'; setTimeout(() => e.target.textContent = 'কপি', 1500);
+  };
+  d.querySelector('.dl').onclick = () => download(name.replace(/\.[^.]+$/, '') + '.txt', new Blob(['\ufeff' + ta.value], { type: 'text/plain;charset=utf-8' }));
+  const fx = d.querySelector('textarea.fix');
+  d.querySelector('.cp2').onclick = async e => {
+    try { await navigator.clipboard.writeText(fx.value); } catch (_) { fx.select(); document.execCommand('copy'); }
+    e.target.textContent = 'কপি হয়েছে ✔'; setTimeout(() => e.target.textContent = 'কপি', 1500);
+  };
+  d.querySelector('.dl2').onclick = () => download(name.replace(/\.[^.]+$/, '') + '-শুধরানো.txt', new Blob(['\ufeff' + fx.value], { type: 'text/plain;charset=utf-8' }));
+  d.querySelector('.ai').onclick = e => aiFix(d, e.target);
+  $('#oc-results').appendChild(d);
+  return { st: d.querySelector('.st'), bar: d.querySelector('.bar i'), ta };
+}
+function download(name, blob) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+
+async function processFile(file) {
+  const c = makeCard(file.name);
+  const parts = [], confs = [];
+  let total = 1, done = 0;
+  onLog = m => {
+    if (BN[m.status]) c.st.textContent = BN[m.status];
+    else if (m.status === 'recognizing text') {
+      c.st.textContent = (total > 1 ? 'পৃষ্ঠা ' + (done + 1) + '/' + total + ' – ' : '') + 'লেখা পড়া হচ্ছে ' + Math.round(m.progress * 100) + '%';
+      c.bar.style.width = ((done + m.progress) / total * 100) + '%';
+    }
+  };
+  const add = r => {
+    done++; confs.push(r.conf);
+    parts.push(total > 1 ? '===== পৃষ্ঠা ' + done + ' =====\n' + r.text : r.text);
+    c.ta.value = parts.join('\n\n');
+    c.bar.style.width = (done / total * 100) + '%';
+  };
+  try {
+    const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    if (isPdf) {
+      if (!window.pdfjsLib) throw new Error('PDF লাইব্রেরি লোড হয়নি (ইন্টারনেট দেখুন)');
+      const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+      total = pdf.numPages;
+      const scale = Math.min(450, Math.max(150, +$('#oc-dpi').value || 300)) / 72;
+      for (let p = 1; p <= total && !cancel; p++) {
+        c.st.textContent = 'পৃষ্ঠা ' + p + '/' + total + ' তৈরি হচ্ছে...';
+        const page = await pdf.getPage(p);
+        const vp = page.getViewport({ scale });
+        const cv = newCanvas(Math.round(vp.width), Math.round(vp.height));
+        const cx = cv.getContext('2d', { willReadFrequently: true });
+        cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+        await page.render({ canvasContext: cx, viewport: vp }).promise;
+        add(await ocrCanvas(cv));
+        free(cv);
+      }
+    } else {
+      const bmp = await createImageBitmap(file);
+      const cv = newCanvas(bmp.width, bmp.height);
+      cv.getContext('2d').drawImage(bmp, 0, 0);
+      add(await ocrCanvas(cv));
+      free(cv);
+    }
+    const avg = confs.reduce((a, b) => a + b, 0) / (confs.length || 1);
+    c.st.textContent = (cancel ? 'বন্ধ করা হয়েছে' : 'সম্পন্ন ✔') + ' – গড় কনফিডেন্স ' + Math.round(avg) + '%';
+    c.st.classList.add(cancel ? 'err' : 'ok');
+    c.bar.style.width = '100%';
+  } catch (e) {
+    c.st.textContent = 'ব্যর্থ: ' + (e && e.message ? e.message : e) + ' (ইন্টারনেট ও ভাষা ডেটা দেখুন, দরকারে "দ্রুত" মডেল দিন)';
+    c.st.classList.add('err');
+  }
+}
+
+$('#oc-go').onclick = async () => {
+  if (!window.Tesseract) { alert('Tesseract লাইব্রেরি লোড হয়নি। ইন্টারনেট সংযোগ দেখে পেজ রিফ্রেশ করুন।'); return; }
+  cancel = false;
+  $('#oc-go').disabled = true; $('#oc-stop').disabled = false; $('#oc-stop').classList.remove('hide');
+  $('#oc-results').innerHTML = '';
+  for (const f of files) { if (cancel) break; await processFile(f); }
+  $('#oc-go').disabled = false; $('#oc-stop').classList.add('hide');
+  $('#oc-all').classList.remove('hide');
+};
+
+/* ---------- Ollama দিয়ে বানান শুধরানো ---------- */
+const AI_PROMPT = 'তুমি একজন বাংলা প্রুফরিডার। নিচের লেখাটি OCR থেকে এসেছে এবং এতে অক্ষরের ভুল আছে। শুধু স্পষ্ট OCR ভুল ঠিক করো: ভুল পড়া অক্ষর, বাদ পড়া চন্দ্রবিন্দু বা হসন্ত, যুক্তাক্ষরের ভুল, এবং মাঝখানে ঢুকে যাওয়া ইংরেজি বা অদ্ভুত চিহ্ন।\n' +
+  'নিয়ম: ১) কোনো শব্দ যোগ বা বাদ দেবে না। ২) প্রতিটি লাইন আলাদা রাখবে, লাইনের সংখ্যা একই থাকবে। ৩) পুরনো বা কাব্যিক বানান (যেমন কবহুঁ, যৈছন, দীঘ) বদলাবে না। ৪) শুধু শুধরানো লেখাটি দাও, কোনো ব্যাখ্যা বা মন্তব্য নয়।\n\nলেখা:\n';
+async function aiFix(card, btn) {
+  const base = ($('#oc-ollamaUrl').value || 'http://localhost:11434').replace(/\/$/, '');
+  const model = $('#oc-ollamaModel').value.trim();
+  const ta = card.querySelector('textarea:not(.fix)'), fx = card.querySelector('textarea.fix'), box = card.querySelector('.fixbox');
+  if (!model) { alert('"AI দিয়ে বানান শুধরানো" অংশে Ollama মডেলের নাম দিন (যেমন qwen2.5:7b)।'); return; }
+  if (!ta.value.trim()) return;
+  const chunks = []; let cur = [], len = 0;
+  for (const l of ta.value.split('\n')) {
+    if (len + l.length > 1200 && cur.length) { chunks.push(cur.join('\n')); cur = []; len = 0; }
+    cur.push(l); len += l.length + 1;
+  }
+  if (cur.length) chunks.push(cur.join('\n'));
+  btn.disabled = true; box.classList.remove('hide'); fx.value = '';
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      btn.textContent = 'শুধরানো হচ্ছে ' + (i + 1) + '/' + chunks.length + '...';
+      const res = await fetch(base + '/api/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, prompt: AI_PROMPT + chunks[i], stream: false, options: { temperature: 0 } })
+      });
+      if (!res.ok) throw new Error('Ollama উত্তর দেয়নি (' + res.status + ')');
+      const data = await res.json();
+      const out = (data.response || '').replace(/^```[a-z]*\n?|```$/g, '').trim();
+      fx.value += (fx.value ? '\n' : '') + out;
+    }
+    btn.textContent = 'আবার শুধরান';
+  } catch (e) {
+    fx.value = 'ব্যর্থ: ' + e.message + '\n(Ollama চালু আছে কিনা এবং OLLAMA_ORIGINS=* সেট আছে কিনা দেখুন)';
+    btn.textContent = 'AI দিয়ে বানান শুধরান';
+  }
+  btn.disabled = false;
+}
+fetch(($('#oc-ollamaUrl').value || 'http://localhost:11434').replace(/\/$/, '') + '/api/tags').then(r => r.json()).then(d => {
+  $('#oc-olist').innerHTML = (d.models || []).map(m => '<option value="' + m.name + '">').join('');
+}).catch(() => {});
+
+/* ---------- একসাথে ডাউনলোড ---------- */
+function collect() {
+  return [...document.querySelectorAll('#oc-results .card')].map(d => ({
+    name: d.querySelector('.name').textContent,
+    text: d.querySelector('textarea').value
+  }));
+}
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+$('#oc-allTxt').onclick = () => {
+  const t = collect().map(x => '##### ' + x.name + ' #####\n' + x.text).join('\n\n');
+  download('ocr_result.txt', new Blob(['\ufeff' + t], { type: 'text/plain;charset=utf-8' }));
+};
+$('#oc-allDoc').onclick = () => {
+  const body = collect().map((x, i, a) =>
+    (a.length > 1 ? '<h2>' + esc(x.name) + '</h2>' : '') +
+    x.text.split('\n').map(l => '<p>' + (esc(l) || '&nbsp;') + '</p>').join('') +
+    (i < a.length - 1 ? '<br clear="all" style="page-break-before:always">' : '')).join('');
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">' +
+    '<head><meta charset="utf-8"><style>body{font-family:"Nirmala UI",Vrinda,Kalpurush,Arial;font-size:13pt}p{margin:0 0 6pt}</style></head><body>' + body + '</body></html>';
+  download('ocr_result.doc', new Blob(['\ufeff', html], { type: 'application/msword' }));
+};
+
+$('#oc-x').onclick = () => { ocrEl.hidden = true; document.body.style.overflow = ''; };
+window.openOcr = () => { ocrEl.hidden = false; document.body.style.overflow = 'hidden'; };
+})();
+</script>
 </body>
 </html>
