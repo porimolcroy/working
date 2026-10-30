@@ -40,7 +40,18 @@ input[type=text],input[type=number],select{width:100%;padding:10px;border:1px so
 #tb input[type=color]{width:34px;height:30px;padding:0;border:0;background:none}
 #eh{font-size:13px;color:var(--mu);padding:5px 10px;background:var(--card)}
 #pg{flex:1;overflow:auto;padding:12px;background:#8a8f9c33}
-.pw{position:relative;margin:0 auto 14px;box-shadow:0 2px 10px #0005;background:#fff}
+.po{position:relative;margin:62px auto 14px;box-shadow:0 2px 10px #0005;background:#fff}
+.pw{position:absolute;transform-origin:center;background:#fff}
+.pbar{position:absolute;left:0;top:-30px;display:flex;gap:4px;align-items:center;font-size:12px;color:var(--mu);white-space:nowrap}
+.pbar button{padding:2px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+.pbar button:hover{border-color:var(--pr)}
+.pbar.b2{top:-58px}.pbar input[type=range]{width:150px;accent-color:var(--pr)}.pbar .skv{min-width:42px;color:var(--tx)}
+.mk input.mc,.mk input.mf{position:absolute;top:-21px;width:28px;height:20px;padding:0;border:1px solid #bbb;border-radius:4px;background:#fff;cursor:pointer;pointer-events:auto;touch-action:none}
+.mk .mc{left:84px}.mk .mf{left:116px}
+.mk .mn{position:absolute;left:148px;top:-21px;height:20px;padding:0 6px;font-size:13px;background:#fff;color:#333;border:1px solid #bbb;border-radius:4px;line-height:18px;cursor:pointer;pointer-events:auto;touch-action:none}
+#xw,#xr{display:none;align-items:center;gap:6px}#xw.show,#xr.show{display:flex}
+.cc{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden}
+#pg.nomk .pbar{display:none}
 .pw canvas{display:block;position:absolute;left:0;top:0}
 #pg.act .ov{touch-action:none;cursor:crosshair}
 .tx{position:absolute;min-width:30px}
@@ -210,6 +221,8 @@ footer{text-align:center;color:var(--mu);font-size:13px;padding:20px}
 <label>রং <input type="color" id="ec" value="#e5322d"></label>
 <label>লেখা <input type="number" id="es" value="18" min="8" max="120"></label>
 <label>রেখা <input type="number" id="ew" value="3" min="1" max="30"></label>
+<span id="xw"><label>ঢাকনার রং <input type="color" id="ecw" value="#ffffff"></label></span>
+<span id="xr"><label><input type="checkbox" id="ecfc" style="width:auto"> বক্স ভরাট <input type="color" id="ecf" value="#ffff00"></label></span>
 <button id="eu">↩️ আনডু</button><button id="evw" title="চিহ্ন লুকিয়ে সেভ করার পর যেমন দেখাবে তেমন দেখুন">👁 প্রিভিউ</button><button id="esv">💾 সেভ</button><button id="ex">✕ বন্ধ</button>
 <input type="file" id="ei" accept="image/*" hidden>
 </div>
@@ -222,7 +235,7 @@ footer{text-align:center;color:var(--mu);font-size:13px;padding:20px}
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-const {PDFDocument,degrees,rgb,StandardFonts}=PDFLib;
+const {PDFDocument,degrees,rgb,StandardFonts,pushGraphicsState,popGraphicsState,concatTransformationMatrix}=PDFLib;
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const $=s=>document.querySelector(s), v=id=>$('#'+id).value;
 const st=m=>$('#st').textContent=m;
@@ -334,16 +347,16 @@ const T=[
 ];
 
 /* ===== পিডিএফ এডিটর ===== */
-const E={tool:'hand',color:'#e5322d',size:18,lw:3,font:'Noto Sans Bengali',bold:false,ital:false,align:'left',pages:[],hist:[],img:null,act:null,buf:null,name:''};
+const E={tool:'hand',color:'#e5322d',size:18,lw:3,wcol:'#ffffff',fcol:'#ffff00',fillOn:false,font:'Noto Sans Bengali',bold:false,ital:false,align:'left',pages:[],hist:[],img:null,act:null,buf:null,name:''};
 const FONT='"Noto Sans Bengali","Hind Siliguri",Arial,sans-serif';
-const TL=[['hand','✋','স্ক্রল'],['move','👆','নড়ান/ঘোরান'],['text','T','লেখা'],['draw','✏️','আঁকুন'],['hl','🖍️','হাইলাইট'],['rect','▭','বক্স'],['white','⬜','সাদা'],['img','🖼️','ছবি/সই']];
-const HINT={move:'যেকোনো আইটেম টেনে সরান। প্রতিটি আইটেমে ✥ সরান, ✕ মুছুন, ⟳ ঘোরান (Shift চাপলে ১৫° করে), ◢ সাইজ বদলান — এগুলো সব টুলেই কাজ করে।',hand:'পেজ স্ক্রল করে দেখুন। কাজ করতে উপরের টুল বেছে নিন।',text:'পেজে যেখানে ক্লিক করবেন সেখানে লেখা বসবে (বাংলা চলবে)। ✥ দিয়ে সরান, ✕ দিয়ে মুছুন। বক্সের ডান-নিচের কোণা টেনে চওড়া করুন এবং উপরের বাটনে বাম/মাঝ/ডান/জাস্টিফাই অ্যালাইন করুন।',draw:'মাউস বা আঙুল দিয়ে আঁকুন বা সই করুন।',hl:'টেনে হাইলাইট করুন।',rect:'টেনে বক্স আঁকুন।',white:'টেনে পুরনো লেখা সাদা করে ঢেকে দিন, তারপর লেখা টুল দিয়ে নতুন লেখা বসান।',img:'ছবি বেছে নিন, সেটি পেজের মাঝখানে বসবে। তারপর সরান, সাইজ বদলান বা ঘোরান।'};
+const TL=[['hand','✋','স্ক্রল'],['move','👆','নড়ান/ঘোরান'],['text','T','লেখা'],['draw','✏️','আঁকুন'],['hl','🖍️','হাইলাইট'],['rect','▭','বক্স'],['white','⬜','ঢাকনা'],['img','🖼️','ছবি/সই']];
+const HINT={move:'যেকোনো আইটেম টেনে সরান। প্রতিটি আইটেমে ✥ সরান, ✕ মুছুন, ⟳ ঘোরান (Shift চাপলে ১৫° করে), ◢ সাইজ বদলান — এগুলো সব টুলেই কাজ করে।',hand:'পেজ স্ক্রল করে দেখুন। প্রতিটি পেজের ওপরের ⟲ ⟳ বাটনে সেই পেজ আলাদাভাবে ঘোরান। বাঁকা পেজ সোজা করতে বা পেজ বাঁকা করতে পেজের ওপরের স্লাইডার বা "✨ অটো সোজা" ব্যবহার করুন। কাজ করতে উপরের টুল বেছে নিন।',text:'পেজে যেখানে ক্লিক করবেন সেখানে লেখা বসবে (বাংলা চলবে)। ✥ দিয়ে সরান, ✕ দিয়ে মুছুন। বক্সের ডান-নিচের কোণা টেনে চওড়া করুন এবং উপরের বাটনে বাম/মাঝ/ডান/জাস্টিফাই অ্যালাইন করুন।',draw:'মাউস বা আঙুল দিয়ে আঁকুন বা সই করুন।',hl:'টেনে হাইলাইট করুন।',rect:'টেনে বক্স আঁকুন। বর্ডারের রং "রং" ঘরে, ভিতরের ভরাট রং চাইলে "বক্স ভরাট" চালু করুন। আঁকার পরেও বক্সের ওপরের রং-ঘর ও ∅ বাটন দিয়ে রং বদলানো বা ভরাট বন্ধ করা যায়।',white:'টেনে পুরনো লেখা ঢেকে দিন (ঢাকনার রং উপরে বদলানো যায়, আঁকার পরেও বক্সের ওপরের রং-ঘরে বদলানো যায়)। তারপর লেখা টুল দিয়ে নতুন লেখা বসান।',img:'ছবি বেছে নিন, সেটি পেজের মাঝখানে বসবে। তারপর সরান, সাইজ বদলান বা ঘোরান।'};
 const hint=m=>$('#eh').textContent=m;
 $('#tools').innerHTML=TL.map(t=>`<button data-t="${t[0]}">${t[1]} ${t[2]}</button>`).join('');
 $('#tools').onclick=e=>{const b=e.target.closest('button');if(b)setTool(b.dataset.t)};
 function setTool(t){
   E.tool=t;if(t!=='text'&&t!=='hand')E.act=null;
-  $('#pg').classList.toggle('act',!['hand','text','move'].includes(t));$('#pg').classList.toggle('mv',t==='move');
+  $('#pg').classList.toggle('act',!['hand','text','move'].includes(t));$('#pg').classList.toggle('mv',t==='move');$('#xw').classList.toggle('show',t==='white');$('#xr').classList.toggle('show',t==='rect');
   document.querySelectorAll('#tools button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   hint(HINT[t]);if(t==='img'){E.img=null;$('#ei').click()}
 }
@@ -414,8 +427,19 @@ function mark(P,it){
   m.innerHTML=`<i>${KN[it.t]}</i><span class="mvh" title="সরান">✥</span><b title="মুছুন">✕</b><span class="rh" title="ঘোরান">⟳</span><span class="sh" title="সাইজ বদলান">◢</span>`;
   const b=m.querySelector('b');b.onpointerdown=e=>e.stopPropagation();b.onclick=()=>delItem(P,it);
   P.w.append(m);it.mk=m;refresh(P,it);
+  if(it.t!=='img'){
+    const rp=()=>paint(P.o.getContext('2d'),P,1);
+    const mkc=(cls,val,tt,fn)=>{const i=document.createElement('input');i.type='color';i.className=cls;i.value=val;i.title=tt;
+      i.onpointerdown=e=>e.stopPropagation();i.oninput=()=>{fn(i.value);rp()};m.append(i);return i};
+    mkc('mc',it.c||'#ffffff',it.t==='rect'?'বর্ডারের রং বদলান':'রং বদলান',v=>it.c=v);
+    if(it.t==='rect'){
+      const f=mkc('mf',it.f||'#ffff00','ভরাট রং বদলান',v=>it.f=v);
+      const n=document.createElement('button');n.className='mn';n.textContent='∅';n.title='ভরাট বন্ধ করুন';
+      n.onpointerdown=e=>e.stopPropagation();n.onclick=()=>{it.f=null;rp()};m.append(n);
+    }
+  }
   const mvStart=e=>{const x0=e.clientX,y0=e.clientY,o=it.p?it.p.map(q=>q.slice()):[it.x,it.y];
-    return ev=>{const dx=ev.clientX-x0,dy=ev.clientY-y0;
+    return ev=>{const[dx,dy]=lv(P,ev.clientX-x0,ev.clientY-y0);
       if(it.p)it.p=o.map(q=>[q[0]+dx,q[1]+dy]);else{it.x=o[0]+dx;it.y=o[1]+dy}refresh(P,it)}};
   track(m,mvStart);track(m.querySelector('.mvh'),mvStart);
   track(m.querySelector('.rh'),e=>{const r=m.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,
@@ -423,7 +447,7 @@ function mark(P,it){
     return ev=>{it.r=snapA(r0+Math.atan2(ev.clientY-cy,ev.clientX-cx)-a0,ev);refresh(P,it)}});
   track(m.querySelector('.sh'),e=>{const bb=bbox(it),cx=bb[0]+bb[2]/2,cy=bb[1]+bb[3]/2,w0=bb[2],h0=bb[3],
     c=it.r||0,x0=e.clientX,y0=e.clientY,o=it.p&&it.p.map(q=>q.slice());
-    return ev=>{const dx=ev.clientX-x0,dy=ev.clientY-y0,
+    return ev=>{const[dx,dy]=lv(P,ev.clientX-x0,ev.clientY-y0),
       lx=dx*Math.cos(c)+dy*Math.sin(c),ly=-dx*Math.sin(c)+dy*Math.cos(c),
       nw=Math.max(8,w0+2*lx),nh=Math.max(8,h0+2*ly);
       if(it.p)it.p=o.map(q=>[cx+(q[0]-cx)*nw/w0,cy+(q[1]-cy)*nh/h0]);
@@ -435,15 +459,20 @@ function delItem(P,it){
   E.hist=E.hist.filter(h=>h.it!==it);paint(P.o.getContext('2d'),P,1);
 }
 $('#ew').oninput=e=>E.lw=+e.target.value||3;
+$('#ecw').oninput=e=>E.wcol=e.target.value;
+$('#ecf').oninput=e=>{E.fcol=e.target.value;E.fillOn=true;$('#ecfc').checked=true};
+$('#ecfc').onchange=e=>E.fillOn=e.target.checked;
 function visPage(){
   const r=$('#pg').getBoundingClientRect();let best=null,bv=-1e9;
-  E.pages.forEach(P=>{const q=P.w.getBoundingClientRect(),top=Math.max(q.top,r.top),bot=Math.min(q.bottom,r.bottom),v=bot-top;
-    if(v>bv){bv=v;best=P;P.cy=Math.min(P.o.height-20,Math.max(20,(top+bot)/2-q.top))}});
+  E.pages.forEach(P=>{const q=P.out.getBoundingClientRect(),top=Math.max(q.top,r.top),bot=Math.min(q.bottom,r.bottom),v=bot-top;
+    if(v>bv){bv=v;best=P;P.cc=[q.left+q.width/2,(top+bot)/2]}});
   return best;
 }
 function putImg(P,im){
   const sc=Math.min(2,P.o.width*.35/im.width),w=im.width*sc,h=im.height*sc;
-  const it={t:'img',im,x:P.o.width/2-w/2,y:P.cy-h/2,w,h};
+  const rc=P.o.getBoundingClientRect(),v=lv(P,P.cc[0]-(rc.left+rc.width/2),P.cc[1]-(rc.top+rc.height/2));
+  const lx=Math.min(P.o.width-w/2-10,Math.max(w/2+10,P.o.width/2+v[0])),ly=Math.min(P.o.height-h/2-10,Math.max(h/2+10,P.o.height/2+v[1]));
+  const it={t:'img',im,x:lx-w/2,y:ly-h/2,w,h};
   P.items.push(it);E.hist.push({P,it});mark(P,it);paint(P.o.getContext('2d'),P,1);
 }
 $('#ei').onchange=e=>{
@@ -455,27 +484,76 @@ $('#ei').onchange=e=>{
   im.src=URL.createObjectURL(f);
 };
 
-function paint(ctx,P,k,tmp){
+function paint(ctx,P,k,tmp,list){
   ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.save();ctx.scale(k,k);
-  P.items.concat(tmp?[tmp]:[]).forEach(it=>{
+  (list||P.items).concat(tmp?[tmp]:[]).forEach(it=>{
     ctx.save();
     if(it.r){const b=bbox(it),cx=b[0]+b[2]/2,cy=b[1]+b[3]/2;ctx.translate(cx,cy);ctx.rotate(it.r);ctx.translate(-cx,-cy)}
     if(it.t==='draw'){ctx.strokeStyle=it.c;ctx.lineWidth=it.w;ctx.lineCap=ctx.lineJoin='round';ctx.beginPath();
       it.p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));if(it.p.length===1)ctx.lineTo(it.p[0][0]+.1,it.p[0][1]);ctx.stroke()}
     else if(it.t==='hl'){ctx.globalAlpha=.35;ctx.fillStyle=it.c;ctx.fillRect(it.x,it.y,it.w,it.h)}
-    else if(it.t==='rect'){ctx.strokeStyle=it.c;ctx.lineWidth=it.lw;ctx.strokeRect(it.x,it.y,it.w,it.h)}
-    else if(it.t==='white'){ctx.fillStyle='#fff';ctx.fillRect(it.x,it.y,it.w,it.h)}
+    else if(it.t==='rect'){if(it.f){ctx.fillStyle=it.f;ctx.fillRect(it.x,it.y,it.w,it.h)}ctx.strokeStyle=it.c;ctx.lineWidth=it.lw;ctx.strokeRect(it.x,it.y,it.w,it.h)}
+    else if(it.t==='white'){ctx.fillStyle=it.c||'#fff';ctx.fillRect(it.x,it.y,it.w,it.h)}
     else if(it.t==='img')ctx.drawImage(it.im,it.x,it.y,it.w,it.h);
     ctx.restore()});
   ctx.restore();
 }
 function mk(t,a,b){
   const x=Math.min(a[0],b[0]),y=Math.min(a[1],b[1]),w=Math.abs(b[0]-a[0]),h=Math.abs(b[1]-a[1]);
-  return t==='img'?{t,im:E.img,x,y,w,h}:t==='rect'?{t,c:E.color,lw:E.lw,x,y,w,h}:{t,c:E.color,x,y,w,h};
+  return t==='img'?{t,im:E.img,x,y,w,h}:t==='rect'?{t,c:E.color,f:E.fillOn?E.fcol:null,lw:E.lw,x,y,w,h}:t==='white'?{t,c:E.wcol,x,y,w,h}:{t,c:E.color,x,y,w,h};
 }
+function applySkew(P){
+  P.cv.style.transform=`rotate(${P.skew}deg)`;P.sl.value=P.skew;P.sv.textContent=P.skew+'°';
+}
+function setSkew(P,v,push){
+  if(push)E.hist.push({P,sk:1,prev:P.skew});
+  P.skew=Math.round(Math.max(-45,Math.min(45,v))*10)/10;applySkew(P);
+}
+function dsSkew(cv){
+  const w=cv.width,h=cv.height,f=Math.max(1,Math.floor(Math.max(w,h)/700)),d=cv.getContext('2d').getImageData(0,0,w,h).data;
+  const gs=[],xs=[],ys=[],hist=new Uint32Array(256);
+  for(let y=0;y<h;y+=f)for(let x=0;x<w;x+=f){const i=(y*w+x)*4,g=((d[i]*299+d[i+1]*587+d[i+2]*114)/1000)|0;hist[g]++;gs.push(g);xs.push(x/f);ys.push(y/f)}
+  const tot=gs.length;let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];
+  let sB=0,wB=0,mx=0,th=127;
+  for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=tot-wB;if(!wF)break;sB+=i*hist[i];
+    const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>mx){mx=v;th=i}}
+  const px=[],py=[];for(let i=0;i<gs.length;i++)if(gs[i]<=th&&gs[i]<200){px.push(xs[i]);py.push(ys[i])}
+  if(px.length<300)return 0;
+  const H=Math.ceil(Math.hypot(w,h)/f)+4,off=H/2,bins=new Float64Array(H);
+  const score=a=>{bins.fill(0);const r=a*Math.PI/180,sn=Math.sin(r),cs=Math.cos(r);
+    for(let i=0;i<px.length;i++){const yy=Math.round(py[i]*cs-px[i]*sn+off);if(yy>=0&&yy<H)bins[yy]++}
+    let t=0;for(let k=0;k<H;k++)t+=bins[k]*bins[k];return t};
+  let best=0,bs=-1;
+  for(let a=-15;a<=15.001;a+=1){const t=score(a);if(t>bs){bs=t;best=a}}
+  const c0=best;for(let a=c0-1;a<=c0+1.001;a+=.1){const t=score(a);if(t>bs){bs=t;best=a}}
+  return Math.round(best*10)/10;
+}
+async function rasterPage(pdf,i,P){
+  const pj=await E.doc.getPage(i+1),sc=Math.min(3,Math.max(2,2000/Math.max(P.pw,P.ph))),vp=pj.getViewport({scale:sc});
+  const src=document.createElement('canvas');src.width=Math.round(vp.width);src.height=Math.round(vp.height);
+  const sx=src.getContext('2d');sx.fillStyle='#fff';sx.fillRect(0,0,src.width,src.height);
+  await pj.render({canvasContext:sx,viewport:vp}).promise;
+  const o=document.createElement('canvas');o.width=src.width;o.height=src.height;
+  const x=o.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,o.width,o.height);
+  x.translate(o.width/2,o.height/2);x.rotate(P.skew*Math.PI/180);x.drawImage(src,-src.width/2,-src.height/2);
+  const jb=await new Promise(r=>o.toBlob(r,'image/jpeg',.92)),im=await pdf.embedJpg(await jb.arrayBuffer());
+  const np=pdf.insertPage(i,[P.pw,P.ph]);np.drawImage(im,{x:0,y:0,width:P.pw,height:P.ph});pdf.removePage(i+1);
+  return np;
+}
+function lv(P,dx,dy){
+  const t=(P.rot||0)*Math.PI/180,c=Math.round(Math.cos(t)),s=Math.round(Math.sin(t));
+  return[dx*c+dy*s,-dx*s+dy*c];
+}
+function applyRot(P){
+  const W=P.o.width,H=P.o.height,sw=P.rot%180!==0,ow=sw?H:W,oh=sw?W:H;
+  P.out.style.width=ow+'px';P.out.style.height=oh+'px';
+  P.w.style.left=(ow-W)/2+'px';P.w.style.top=(oh-H)/2+'px';P.w.style.transform=`rotate(${P.rot}deg)`;
+  P.lb.textContent=`পেজ ${P.n}`+(P.rot?` (${P.rot}°)`:'');
+}
+function setRot(P,d){const prev=P.rot;P.rot=d==='z'?0:(((P.rot+d)%360)+360)%360;applyRot(P);E.hist.push({P,rot:1,prev})}
 function bind(P){
   const o=P.o;let s=null;
-  const pos=e=>{const r=o.getBoundingClientRect();return[(e.clientX-r.left)*o.width/r.width,(e.clientY-r.top)*o.height/r.height]};
+  const pos=e=>{const r=o.getBoundingClientRect(),v=lv(P,e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2));return[v[0]+o.width/2,v[1]+o.height/2]};
   o.onpointerdown=e=>{
     const t=E.tool;if(t==='hand'||t==='move')return;const p=pos(e);
     if(t==='text'){addText(P,p[0],p[1]);return}
@@ -502,8 +580,8 @@ function addText(P,x,y){
   ed.onfocus=()=>sync(ed);ed.focus();
   d.querySelector('.dl').onclick=()=>{d.remove();P.texts=P.texts.filter(z=>z!==d);E.hist=E.hist.filter(h=>h.el!==d);if(E.act===ed)E.act=null};
   const h=d.querySelector('.hd');let m=null;
-  h.onpointerdown=e=>{h.setPointerCapture(e.pointerId);m=[e.clientX-d.offsetLeft,e.clientY-d.offsetTop]};
-  h.onpointermove=e=>{if(m){d.style.left=(e.clientX-m[0])+'px';d.style.top=(e.clientY-m[1])+'px'}};
+  h.onpointerdown=e=>{h.setPointerCapture(e.pointerId);m=[e.clientX,e.clientY,d.offsetLeft,d.offsetTop]};
+  h.onpointermove=e=>{if(m){const v=lv(P,e.clientX-m[0],e.clientY-m[1]);d.style.left=(m[2]+v[0])+'px';d.style.top=(m[3]+v[1])+'px'}};
   h.onpointerup=()=>m=null;
   track(d.querySelector('.rt'),e=>{const r=d.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,
     a0=Math.atan2(e.clientY-cy,e.clientX-cx),r0=+d.dataset.r||0;
@@ -511,6 +589,8 @@ function addText(P,x,y){
 }
 $('#eu').onclick=()=>{
   const h=E.hist.pop();if(!h)return;
+  if(h.rot){h.P.rot=h.prev;applyRot(h.P);return}
+  if(h.sk){h.P.skew=h.prev;applySkew(h.P);return}
   if(h.el){h.el.remove();h.P.texts=h.P.texts.filter(z=>z!==h.el)}
   else{if(h.it.mk)h.it.mk.remove();h.P.items=h.P.items.filter(z=>z!==h.it);paint(h.P.o.getContext('2d'),h.P,1)}
 };
@@ -520,7 +600,7 @@ $('#ex').onclick=()=>{
 };
 async function openEditor(f){
   E.name=base(f);E.buf=await buf(f);E.hist=[];E.pages=[];E.act=null;
-  const doc=await pdfjsLib.getDocument({data:new Uint8Array(E.buf.slice(0))}).promise,box=$('#pg');box.innerHTML='';
+  const doc=await pdfjsLib.getDocument({data:new Uint8Array(E.buf.slice(0))}).promise,box=$('#pg');E.doc=doc;box.innerHTML='';
   for(let i=1;i<=doc.numPages;i++){
     st(`পেজ ${i}/${doc.numPages} লোড হচ্ছে...`);
     const pg=await doc.getPage(i),v1=pg.getViewport({scale:1});
@@ -529,21 +609,49 @@ async function openEditor(f){
     const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
     await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
     const o=document.createElement('canvas');o.width=vp.width;o.height=vp.height;o.className='ov';
-    w.append(c,o);box.append(w);
-    const P={w,o,S,items:[],texts:[],pw:v1.width,ph:v1.height};E.pages.push(P);bind(P);
+    const cc=document.createElement('div');cc.className='cc';cc.append(c);w.append(cc,o);
+    const out=document.createElement('div');out.className='po';out.append(w);
+    const bar=document.createElement('div');bar.className='pbar';
+    bar.innerHTML='<span class="lb2"></span><button data-r="-90" title="এই পেজ ৯০° বামে ঘোরান">⟲ বামে</button><button data-r="90" title="এই পেজ ৯০° ডানে ঘোরান">⟳ ডানে</button><button data-r="180" title="এই পেজ ১৮০° ঘোরান">১৮০°</button><button data-r="z" title="আগের অবস্থায় ফেরান">রিসেট</button>';
+    out.append(bar);
+    const bar2=document.createElement('div');bar2.className='pbar b2';
+    bar2.innerHTML='<span>বাঁকা/সোজা</span><button data-s="-0.5" title="০.৫° বামে">−০.৫°</button><input type="range" min="-45" max="45" step="0.1" value="0" class="sk"><button data-s="0.5" title="০.৫° ডানে">+০.৫°</button><b class="skv">0°</b><button data-a="auto" title="স্ক্যান করা বাঁকা পেজ নিজে থেকে সোজা করুন">✨ অটো সোজা</button><button data-a="sz" title="বাঁকা ভাব মুছুন">০°</button>';
+    out.append(bar2);box.append(out);
+    const P={out,w,o,S,n:i,rot:0,skew:0,cv:c,sl:bar2.querySelector('.sk'),sv:bar2.querySelector('.skv'),lb:bar.querySelector('.lb2'),items:[],texts:[],pw:v1.width,ph:v1.height};E.pages.push(P);bind(P);applyRot(P);
+    bar.onclick=e=>{const b=e.target.closest('button');if(b)setRot(P,b.dataset.r==='z'?'z':+b.dataset.r)};
+    P.sl.onpointerdown=()=>{P._sk0=P.skew};
+    P.sl.oninput=()=>setSkew(P,+P.sl.value,false);
+    P.sl.onchange=()=>{if(P._sk0!==undefined&&P._sk0!==P.skew)E.hist.push({P,sk:1,prev:P._sk0});P._sk0=undefined};
+    bar2.onclick=e=>{const b=e.target.closest('button');if(!b)return;
+      if(b.dataset.s)setSkew(P,P.skew+ +b.dataset.s,true);
+      else if(b.dataset.a==='sz')setSkew(P,0,true);
+      else if(b.dataset.a==='auto'){hint('বাঁকা মাপা হচ্ছে...');setTimeout(()=>{
+        const a=dsSkew(P.cv);
+        if(!a)hint(`পেজ ${P.n}: কোনো বাঁকা ভাব পাওয়া যায়নি (বা লেখা খুব কম)। স্লাইডার দিয়ে নিজে ঠিক করুন।`);
+        else{setSkew(P,-a,true);hint(`✅ পেজ ${P.n}: ${Math.abs(a)}° বাঁকা সোজা করা হয়েছে। দরকারে স্লাইডার বা ±০.৫° বাটনে ঠিক করুন।`)}},30)}};
   }
   $('#pg').classList.remove('nomk');$('#evw').classList.remove('on');ui();
   $('#ed').hidden=false;document.body.style.overflow='hidden';st('');setTool('hand');
 }
-$('#esv').onclick=async()=>{
-  const b=$('#esv');b.disabled=true;hint('সেভ হচ্ছে, অপেক্ষা করুন...');
-  try{
-    const pdf=await PDFDocument.load(E.buf,{ignoreEncryption:true}),pgs=pdf.getPages(),Q=2.5;
-    for(let i=0;i<E.pages.length;i++){
-      const P=E.pages[i],tx=P.texts.filter(d=>d.querySelector('.ed').innerText.trim());
-      if(!P.items.length&&!tx.length)continue;
-      const c=document.createElement('canvas');c.width=Math.round(P.pw*Q);c.height=Math.round(P.ph*Q);
-      const k=Q/P.S,x=c.getContext('2d');paint(x,P,k);
+function applyPageRot(pg,P){if(P.rot)pg.setRotation(degrees((((pg.getRotation().angle+P.rot)%360)+360)%360))}
+async function exportPage(pdf,pg,P,tx,Q){
+  const R0=(((pg.getRotation().angle%360)+360)%360),W=pg.getWidth(),H=pg.getHeight(),sw=R0%180!==0,
+    org={0:[0,0],90:[W,0],180:[W,H],270:[0,H]}[R0]||[0,0],rr=R0*Math.PI/180,cR=Math.round(Math.cos(rr)),sR=Math.round(Math.sin(rr)),S=P.S;
+  const hex=h=>{const n=parseInt((h||'#000000').slice(1),16);return rgb(((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255)};
+  /* বক্স, ঢাকনা ও হাইলাইট ভেক্টর হিসেবে বসে, তাই চারপাশে কালো দাগ পড়ে না */
+  const vec=it=>{
+    const w=it.w/S,h=it.h/S,cx=(it.x+it.w/2)/S,cy=P.ph-(it.y+it.h/2)/S,th=-(it.r||0),ct=Math.cos(th),st=Math.sin(th);
+    pg.pushOperators(pushGraphicsState(),concatTransformationMatrix(cR,sR,-sR,cR,org[0],org[1]),concatTransformationMatrix(ct,st,-st,ct,cx,cy));
+    const o={x:-w/2,y:-h/2,width:w,height:h,borderWidth:0};
+    if(it.t==='hl'){o.color=hex(it.c);o.opacity=.35}
+    else if(it.t==='white')o.color=hex(it.c||'#ffffff');
+    else{if(it.f)o.color=hex(it.f);o.borderColor=hex(it.c);o.borderWidth=it.lw/S}
+    pg.drawRectangle(o);pg.pushOperators(popGraphicsState());
+  };
+  const raster=async(list,withText)=>{
+    const c=document.createElement('canvas');c.width=Math.round(P.pw*Q);c.height=Math.round(P.ph*Q);
+    const k=Q/P.S,x=c.getContext('2d');paint(x,P,k,null,list);
+    if(withText){
       x.save();x.scale(k,k);x.textBaseline='top';
       tx.forEach(d=>{const ed=d.querySelector('.ed'),fs=parseFloat(ed.style.fontSize),r=+d.dataset.r||0;
         x.save();
@@ -561,9 +669,28 @@ $('#esv').onclick=async()=>{
           flush(true)});
         x.restore()});
       x.restore();
-      const png=await new Promise(r=>c.toBlob(r,'image/png'));
-      const im=await pdf.embedPng(await png.arrayBuffer()),pg=pgs[i];
-      pg.drawImage(im,{x:0,y:0,width:pg.getWidth(),height:pg.getHeight()});
+    }
+    const png=await new Promise(r=>c.toBlob(r,'image/png'));
+    const im=await pdf.embedPng(await png.arrayBuffer());
+    pg.drawImage(im,{x:org[0],y:org[1],width:sw?H:W,height:sw?W:H,rotate:degrees(R0)});
+  };
+  let batch=[];
+  for(const it of P.items){
+    if(it.t==='white'||it.t==='rect'||it.t==='hl'){if(batch.length){await raster(batch,false);batch=[]}vec(it)}
+    else batch.push(it);
+  }
+  if(batch.length||tx.length)await raster(batch,true);
+}
+$('#esv').onclick=async()=>{
+  const b=$('#esv');b.disabled=true;hint('সেভ হচ্ছে, অপেক্ষা করুন...');
+  try{
+    const pdf=await PDFDocument.load(E.buf,{ignoreEncryption:true}),pgs=pdf.getPages(),Q=2.5;
+    for(let i=0;i<E.pages.length;i++){
+      const P=E.pages[i],tx=P.texts.filter(d=>d.querySelector('.ed').innerText.trim());
+      if(P.skew)pgs[i]=await rasterPage(pdf,i,P);
+      if(!P.items.length&&!tx.length){applyPageRot(pgs[i],P);continue}
+      await exportPage(pdf,pgs[i],P,tx,Q);
+      applyPageRot(pgs[i],P);
     }
     save(await pdf.save(),E.name+'-edited.pdf');hint('✅ সেভ হয়েছে, ফাইল ডাউনলোড হয়েছে।');
   }catch(e){console.error(e);hint('❌ সেভ করতে সমস্যা হয়েছে।')}
